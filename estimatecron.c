@@ -59,9 +59,29 @@
 #define LINESIZE 100
 
 void crontab_process(char filename[]){
-    printf("howdy");
-    //you are sooo cool
+    //Reading crontab Process
+    //  ATTEMPT TO OPEN THE FILE FOR READ-ONLY ACCESS
+    int fd    = open(filename, O_RDONLY);
+
+//  CHECK TO SEE IF FILE COULD BE OPENED
+    if(fd == -1) {
+        printf("cannot open '%s'\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+//  DEFINE A CHARACTER ARRAY TO HOLD THE FILE'S CONTENTS
+    char   buffer[LINESIZE];
+    size_t got;
+
+//  PERFORM MULTIPLE READs OF FILE UNTIL END-OF-FILE REACHED
+    while((got = read(fd, buffer, sizeof buffer)) > 0) {
+
+    }
+
+//  INDICATE THAT THE PROCESS WILL NO LONGER ACCESS FILE
+    close(fd);
 }
+
 
 void estimates_process(char filename[]){
     FILE *estimates = fopen(filename, "r");
