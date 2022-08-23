@@ -3,7 +3,15 @@
 // Student1: 23057892 Chambers Monti
 // Student2: 23058262 Nguyen Nathan
 
-
+/*
+ crontab-file:
+ minute (int 0-59)
+ hour (int 0-24)
+ date (int 0-31 depending)
+ month (int 0-12)
+ day (string mon or monday works)
+ command (string)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
