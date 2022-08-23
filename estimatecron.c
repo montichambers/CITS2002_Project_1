@@ -58,22 +58,28 @@
 #define ESTIMATES_FILE
 #define LINESIZE 100
 
-void crontab_process(char filename[]){
-    FILE *crontab = fopen(filename, "r");
+void file_opener(char filename[]) {
+    FILE *name = fopen(filename, "r");
     char line[LINESIZE];
 
-    if(crontab == NULL) {
+    if(name == NULL) {
         fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
+    } else {
+        printf("Successfully opened %s", filename);
     }
-    while(fgets(line, sizeof line, crontab) != NULL){
+
+    while(fgets(line, sizeof line, name) != NULL){
         if(line[0] != '#'){
 
         }
     }
-    fclose(crontab);
+    fclose(name);
 }
 
+void crontab_process(char filename[]){
+    file_opener(filename);
+}
 
 void estimates_process(char filename[]){
     FILE *estimates = fopen(filename, "r");
