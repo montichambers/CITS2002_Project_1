@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
     char *crontab_file = argv[2];
     char *estimates_file = argv[3];
 
-    estimates_process(estimates_file)
+    estimates_process(estimates_file);
 
     crontab_process(crontab_file);
 
