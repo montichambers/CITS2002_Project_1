@@ -72,7 +72,7 @@ void estimates_process(char filename[]){
         exit(EXIT_FAILURE);
     }
     while(fgets(line, sizeof line, estimates) != NULL){
-
+    // This is a test comment
     }
     fclose(estimates);
 }
