@@ -60,8 +60,19 @@
 #define FUNCSIZE 40
 
 void crontab_process(char filename[]){
-    printf("howdy");
-    //you are sooo cool
+    FILE *crontab = fopen(filename, "r");
+    char line[LINESIZE];
+
+    if(crontab == NULL) {
+        fprintf(stderr, "cannot open file '%s'\n", filename);
+        exit(EXIT_FAILURE);
+    }
+    while(fgets(line, sizeof line, crontab) != NULL){
+        if(line[0] != '#'){
+
+        }
+    }
+    fclose(crontab);
 }
 
 void estimates_process(char filename[]){
@@ -100,5 +111,6 @@ int main(int argc, char *argv[]){
 
     estimates_process(estimates_file)
 
+    crontab_process(crontab_file);
 
 }
