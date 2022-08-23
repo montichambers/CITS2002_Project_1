@@ -59,27 +59,19 @@
 #define LINESIZE 100
 
 void crontab_process(char filename[]){
-    //Reading crontab Process
-    //  ATTEMPT TO OPEN THE FILE FOR READ-ONLY ACCESS
-    int fd = open(filename, O_RDONLY);
+    FILE *crontab = fopen(filename, "r");
+    char line[LINESIZE];
 
-//  CHECK TO SEE IF FILE COULD BE OPENED
-    if(fd == -1) {
-        printf("cannot open '%s'\n", filename);
+    if(crontab == NULL) {
+        fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
+    while(fgets(line, sizeof line, crontab) != NULL){
+        if(line[0] != '#'){
 
-//  DEFINE A CHARACTER ARRAY TO HOLD THE FILE'S CONTENTS
-    char   buffer[LINESIZE];
-    size_t got;
-
-//  PERFORM MULTIPLE READs OF FILE UNTIL END-OF-FILE REACHED
-    while((got = read(fd, buffer, sizeof buffer)) > 0) {
-
+        }
     }
-
-//  INDICATE THAT THE PROCESS WILL NO LONGER ACCESS FILE
-    close(fd);
+    fclose(crontab);
 }
 
 
