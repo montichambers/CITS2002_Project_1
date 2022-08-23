@@ -73,6 +73,7 @@ void estimates_process(char filename[]){
     }
     while(fgets(line, sizeof line, estimates) != NULL){
     // This is a test comment
+    // HI
     }
     fclose(estimates);
 }
