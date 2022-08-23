@@ -72,7 +72,9 @@ void estimates_process(char filename[]){
         exit(EXIT_FAILURE);
     }
     while(fgets(line, sizeof line, estimates) != NULL){
+        if(line[0] != '#'){
 
+        }
     }
     fclose(estimates);
 }
