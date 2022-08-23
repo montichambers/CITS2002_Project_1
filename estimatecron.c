@@ -57,6 +57,7 @@
 #define CRONTAB_FILE
 #define ESTIMATES_FILE
 #define LINESIZE 100
+#define FUNCSIZE 40
 
 void crontab_process(char filename[]){
     printf("howdy");
@@ -71,9 +72,14 @@ void estimates_process(char filename[]){
         fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
+    struct{
+        char command[40 + 1];
+        int minutes;
+    } estimate[40];
+
     while(fgets(line, sizeof line, estimates) != NULL){
         if(line[0] != '#'){
-
+            printf("line")
         }
     }
     fclose(estimates);
@@ -91,6 +97,8 @@ int main(int argc, char *argv[]){
     char *month = argv[1];
     char *crontab_file = argv[2];
     char *estimates_file = argv[3];
+
+    estimates_process(estimates_file)
 
 
 }
