@@ -61,7 +61,7 @@
 void crontab_process(char filename[]){
     //Reading crontab Process
     //  ATTEMPT TO OPEN THE FILE FOR READ-ONLY ACCESS
-    int fd    = open(filename, O_RDONLY);
+    int fd = open(filename, O_RDONLY);
 
 //  CHECK TO SEE IF FILE COULD BE OPENED
     if(fd == -1) {
@@ -112,5 +112,6 @@ int main(int argc, char *argv[]){
     char *crontab_file = argv[2];
     char *estimates_file = argv[3];
 
+    crontab_process(crontab_file);
 
 }
