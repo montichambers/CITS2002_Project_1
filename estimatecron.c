@@ -44,7 +44,6 @@
 
  Plan of attack:
     Turn files into structures
-
  */
 
 #include <stdio.h>
@@ -71,7 +70,7 @@ void file_opener(char filename[]) {
 
     while(fgets(line, sizeof line, name) != NULL){
         if(line[0] != '#'){
-
+char ghghgjgjg;
         }
     }
     fclose(name);
