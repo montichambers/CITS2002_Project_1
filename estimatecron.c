@@ -69,12 +69,6 @@ void file_opener(char filename[]) {
     } else {
         printf("Successfully opened %s", filename);
     }
-
-    while(fgets(line, sizeof line, name) != NULL){
-        if(line[0] != '#'){
-
-        }
-    }
     fclose(name);
 }
 
