@@ -53,23 +53,23 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define CRONTAB_FILE
 #define ESTIMATES_FILE
 #define LINESIZE 100
 #define FUNCSIZE 40
+#define MAXFUNCS 20
 
-void file_opener(char filename[]) {
+FILE *file_opener(char filename[]) {
     FILE *name = fopen(filename, "r");
-    char line[LINESIZE];
 
     if(name == NULL) {
         fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
-    } else {
-        printf("Successfully opened %s", filename);
     }
-    fclose(name);
+
+    return name;
 }
 
 void crontab_process(char filename[]){
@@ -77,21 +77,20 @@ void crontab_process(char filename[]){
 }
 
 void estimates_process(char filename[]){
-    FILE *estimates = fopen(filename, "r");
+    FILE *estimates = file_opener(filename);
     char line[LINESIZE];
 
-    if(estimates == NULL) {
-        fprintf(stderr, "cannot open file '%s'\n", filename);
-        exit(EXIT_FAILURE);
-    }
     struct{
-        char command[40 + 1];
+        char command[FUNCSIZE + 1];
         int minutes;
-    } estimate[40];
+    } estimate[MAXFUNCS];
 
     while(fgets(line, sizeof line, estimates) != NULL){
         if(line[0] != '#'){
-            printf("line\n");
+            printf("%s\n", line);
+            for(int i = 0; i < sizeof line; i++){
+                //Split line into strings and assign each to struct
+            }
         }
     }
     fclose(estimates);
@@ -114,4 +113,5 @@ int main(int argc, char *argv[]){
 
     crontab_process(crontab_file);
 
+    return 0;
 }
