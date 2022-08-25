@@ -44,6 +44,7 @@
 
  Plan of attack:
     Turn files into structures
+
  */
 
 #include <stdio.h>
@@ -52,29 +53,23 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define CRONTAB_FILE
 #define ESTIMATES_FILE
 #define LINESIZE 100
 #define FUNCSIZE 40
+#define MAXFUNCS 20
 
-void file_opener(char filename[]) {
+FILE *file_opener(char filename[]) {
     FILE *name = fopen(filename, "r");
-    char line[LINESIZE];
 
     if(name == NULL) {
         fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
-    } else {
-        printf("Successfully opened %s", filename);
     }
 
-    while(fgets(line, sizeof line, name) != NULL){
-        if(line[0] != '#'){
-char ghghgjgjg;
-        }
-    }
-    fclose(name);
+    return name;
 }
 
 void crontab_process(char filename[]){
@@ -82,24 +77,18 @@ void crontab_process(char filename[]){
 }
 
 void estimates_process(char filename[]){
-    FILE *estimates = fopen(filename, "r");
+    FILE *estimates_file = file_opener(filename); //Open file
     char line[LINESIZE];
 
-    if(estimates == NULL) {
-        fprintf(stderr, "cannot open file '%s'\n", filename);
-        exit(EXIT_FAILURE);
-    }
-    struct{
-        char command[40 + 1];
+    while(fgets(line, sizeof line, estimates_file) != NULL){
+        char command[FUNCSIZE + 1];
         int minutes;
-    } estimate[40];
-
-    while(fgets(line, sizeof line, estimates) != NULL){
         if(line[0] != '#'){
-            printf("line\n");
+            sscanf(line, "%s %i", command, &minutes);
+            printf("Line is %s %i\n", command, minutes);
         }
     }
-    fclose(estimates);
+    fclose(estimates_file);
 }
 
 void calculations(){
@@ -119,4 +108,20 @@ int main(int argc, char *argv[]){
 
     crontab_process(crontab_file);
 
+    return 0;
 }
+
+
+//int count = 0;
+//char *token = strtok(line, " ");
+/*
+while(token != NULL){
+    if(count == 0){
+        strcpy(*estimates[i].command, token);
+    }
+    if(count == 1){
+        estimates[i].minutes = atoi(token);
+    }
+    */
+//count += 1;
+//token = strtok(NULL, " ");
