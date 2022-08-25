@@ -101,12 +101,36 @@ int main(int argc, char *argv[]){
         fprintf(stderr, "%s expected 3 arguments, instead got %i", argv[0], argc - 1);
     }
     char *month = argv[1];
-    char *crontab_file = argv[2];
-    char *estimates_file = argv[3];
+    FILE *crontab_file = file_opener(argv[2]);
+    FILE *estimates_file = file_opener(argv[3]);
+    char line[LINESIZE];
 
-    estimates_process(estimates_file);
+    struct{
+        char *command[FUNCSIZE + 1];
+        int minutes;
+    }estimates[MAXFUNCS];
 
-    crontab_process(crontab_file);
+    struct{
+        int minute;
+        int hour;
+        int date;
+        int month;
+        int day;
+        char *command;
+    }crontabs[MAXFUNCS];
+
+    while(fgets(line, sizeof line, estimates_file) != NULL){
+        int i = 0;
+        char command_name[FUNCSIZE + 1];
+        int minutes = 0;
+        if(line[0] != '#') {
+            sscanf(line, "%s %i", command_name, &minutes);
+        }
+        *estimates[i].command = command_name;
+        estimates[i].minutes = minutes;
+        ++i;
+    }
+    printf("Estimates function 1 is %s", *estimates[0].command);
 
     return 0;
 }
