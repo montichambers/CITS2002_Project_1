@@ -119,8 +119,8 @@ int main(int argc, char *argv[]){
         char *command;
     }crontabs[MAXFUNCS];
 
+    int i = 0;
     while(fgets(line, sizeof line, estimates_file) != NULL){
-        int i = 0;
         char command_name[FUNCSIZE + 1];
         int minutes = 0;
         if(line[0] != '#') {
@@ -130,7 +130,9 @@ int main(int argc, char *argv[]){
         estimates[i].minutes = minutes;
         ++i;
     }
-    printf("Estimates function 1 is %s", *estimates[0].command);
+    for(int j = 0; j < 4; j++){
+        printf("Estimates function %i is %s\n", j, *estimates[j].command);
+    }
 
     return 0;
 }
