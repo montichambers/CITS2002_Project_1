@@ -77,23 +77,18 @@ void crontab_process(char filename[]){
 }
 
 void estimates_process(char filename[]){
-    FILE *estimates = file_opener(filename);
+    FILE *estimates_file = file_opener(filename); //Open file
     char line[LINESIZE];
 
-    struct{
+    while(fgets(line, sizeof line, estimates_file) != NULL){
         char command[FUNCSIZE + 1];
         int minutes;
-    } estimate[MAXFUNCS];
-
-    while(fgets(line, sizeof line, estimates) != NULL){
         if(line[0] != '#'){
-            printf("%s\n", line);
-            for(int i = 0; i < sizeof line; i++){
-                //Split line into strings and assign each to struct
-            }
+            sscanf(line, "%s %i", command, &minutes);
+            printf("Line is %s %i\n", command, minutes);
         }
     }
-    fclose(estimates);
+    fclose(estimates_file);
 }
 
 void calculations(){
@@ -115,3 +110,18 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
+
+
+//int count = 0;
+//char *token = strtok(line, " ");
+/*
+while(token != NULL){
+    if(count == 0){
+        strcpy(*estimates[i].command, token);
+    }
+    if(count == 1){
+        estimates[i].minutes = atoi(token);
+    }
+    */
+//count += 1;
+//token = strtok(NULL, " ");
