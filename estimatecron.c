@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
     char line[LINESIZE];
 
     struct{
-        char *command[FUNCSIZE + 1];
+        char command[FUNCSIZE + 1];
         int minutes;
     }estimates[MAXFUNCS];
 
@@ -122,16 +122,16 @@ int main(int argc, char *argv[]){
     int i = 0;
     while(fgets(line, sizeof line, estimates_file) != NULL){
         char command_name[FUNCSIZE + 1];
-        int minutes = 0;
+        int command_minutes = 0;
         if(line[0] != '#') {
-            sscanf(line, "%s %i", command_name, &minutes);
+            sscanf(line, "%s %i", command_name, &command_minutes);
+            strcpy(estimates[i].command, command_name);
+            estimates[i].minutes = command_minutes;
+            i++;
         }
-        *estimates[i].command = command_name;
-        estimates[i].minutes = minutes;
-        ++i;
     }
-    for(int j = 0; j < 4; j++){
-        printf("Estimates function %i is %s\n", j, *estimates[j].command);
+    for(int j = 0; j < 5; j++){
+        printf("Estimates function %i is %s and will run for %i minutes\n", j, estimates[j].command, estimates[j].minutes);
     }
 
     return 0;
