@@ -309,7 +309,6 @@ int main(int argc, char *argv[]){
     if(argc != 4){
         fprintf(stderr, "%s expected 3 arguments, instead got %i\n", argv[0], argc - 1);
     }
-    //testing testing
     // Defining variables
     char *month = argv[1];
     FILE *crontab_file = file_opener(argv[2]);
