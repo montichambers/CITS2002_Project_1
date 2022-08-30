@@ -183,6 +183,54 @@ int day_num(char *day){
     exit(EXIT_FAILURE);
 }
 
+int first_day(int month){
+    /* Returns the first day of the month as an int [0-6] */
+
+    int first_day;
+    switch (month) {
+        case 1:
+            first_day = 6;
+            break;
+        case 2:
+            first_day = 2;
+            break;
+        case 3:
+            first_day = 2;
+            break;
+        case 4:
+            first_day = 5;
+            break;
+        case 5:
+            first_day = 0;
+            break;
+        case 6:
+            first_day = 3;
+            break;
+        case 7:
+            first_day = 5;
+            break;
+        case 8:
+            first_day = 1;
+            break;
+        case 9:
+            first_day = 4;
+            break;
+        case 10:
+            first_day = 6;
+            break;
+        case 11:
+            first_day = 2;
+            break;
+        case 12:
+            first_day = 4;
+            break;
+        default:
+            fprintf(stderr, "%i is an invalid month", month);
+            exit(EXIT_FAILURE);
+    }
+    return first_day;
+}
+
 void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     /* Calculates and prints:
      * 1. The name of the most frequently executed command
