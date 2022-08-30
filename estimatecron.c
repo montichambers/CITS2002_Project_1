@@ -50,6 +50,16 @@
         use to count how many programs run and are running at 1 time
 
 
+
+
+
+ PLAN:
+    Test each minute and see how many programs are running
+    Use a counter to count  frequency of each program
+    Find the name of the most frequently executed command (a single word),
+    The total number of commands invoked (a non-negative integer),
+    The maximum number of commands running at any time (a non-negative integer).
+
  */
 
 #include <stdio.h>
