@@ -54,6 +54,16 @@
 
 
  PLAN:
+    Iterate through each minute
+    Iterate through each crontab array
+    Determine if a command executes or terminates in that minute (terminate first)
+    If a command executes:
+        +1 total programs run, +1 current programs running, +1 specific command run, start (timer?) based on minutes from estimates
+    If a command terminates:
+        -1 current programs running
+
+    Find potential errors
+
     Test each minute and see how many programs are running
     Use a counter to count  frequency of each program
     Find the name of the most frequently executed command (a single word),
@@ -94,27 +104,35 @@ int month_num(char *month){
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
-    const char months[12][9] = {"january", "february", "march", // all months as full name
+    const char *months[12] = {"january", "february", "march", // all months as full name
                               "april", "may", "june",
                               "july", "august", "september",
                               "october", "november", "december"};
-    const char short_months[12][3] = {"jan", "feb", "mar", // all months as 3 letter name
-                                      "apr", "may", "jun",
-                                      "jul", "aug", "sep",
-                                      "oct", "nov", "dec"};
-
-    for(int i = 0; month[i]; i++){
-        month[i] = tolower(month[i]); // Converts each letter of given string to lowercase
-    }
     for(int i = 0; i < 12; i++){
-        if(! strcmp(month, months[i])){ // Compares whether given month is equal to its long month
-            return i + 1;
-        }
-        else if(! strcmp(month, short_months[i])) { // Compares whether given month is equal to its short month
+        if(strstr(months[i], month) != NULL){ // Compares whether given month is equal to its long month
             return i + 1;
         }
     }
     fprintf(stderr, "%s is an invalid month\n", month);
+    exit(EXIT_FAILURE);
+}
+
+int day_num(char *day){
+    /* Returns the integer of a day given as a string */
+
+    int day_num;
+    if(isnumber(*day)){ // Return the day integer if it is already one
+        return atoi(day);
+    }
+    const char *days[7] = {"monday", "tuesday", "wednesday", // all days as full name
+                             "thursday", "friday", "saturday","sunday"};
+
+    for(int i = 0; i < 7; i++){
+        if(strstr(days[i], day) != NULL){ // Compares whether given day is a valid day (or substring)
+            return i + 1;
+        }
+    }
+    fprintf(stderr, "%s is an invalid day\n", day);
     exit(EXIT_FAILURE);
 }
 
@@ -164,33 +182,6 @@ int days_in_month(int month){
             exit(EXIT_FAILURE);
     }
     return daysinmonth;
-}
-
-int day_num(char *day){
-    /* Returns the integer of a day given as a string */
-
-    int day_num;
-    if(! isnumber(atoi(day))){ // Return the day integer if it is already one
-        return atoi(day);
-    }
-    const char days[7][9] = {"monday", "tuesday", "wednesday", // all days as full name
-                                "thursday", "friday", "saturday","sunday"};
-    const char short_days[7][3] = {"mon", "tue", "wed", // all days as 3 letter name
-                                      "thu", "fri", "sat","sun"};
-
-    for(int i = 0; day[i]; i++){
-        day[i] = tolower(day[i]); // Converts each letter of given string to lowercase
-    }
-    for(int i = 0; i < 7; i++){
-        if(! strcmp(day, days[i])){ // Compares whether given day is equal to its long day
-            return i + 1;
-        }
-        else if(! strcmp(day, short_days[i])) { // Compares whether given day is equal to its short day
-            return i + 1;
-        }
-    }
-    fprintf(stderr, "%s is an invalid day\n", day);
-    exit(EXIT_FAILURE);
 }
 
 int first_day(int month){
@@ -259,11 +250,11 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     }estimates[MAX_COMMANDS];
 
     struct{
-        char minute[1];
-        char hour[1];
-        char date[1];
-        char month[1];
-        char day[9];
+        char minute[3];
+        char hour[3];
+        char date[3];
+        char month[3];
+        char day[10];
         char command[COMMAND_SIZE + 1];
     }crontabs[MAX_COMMANDS];
 
@@ -271,7 +262,13 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     while(fgets(line, sizeof line, estimates_file) != NULL){
         char estimate_name[COMMAND_SIZE + 1];
         int estimate_minutes = 0;
-        if(line[0] != '#') {
+
+        int j = 0;
+        while(isspace(line[j])) {  // Test for whitespace at start of sentence
+            j++;
+        }
+
+        if(line[j] != '#') {
             sscanf(line, "%s %i", estimate_name, &estimate_minutes);
             strcpy(estimates[i].command, estimate_name);
             estimates[i].minutes = estimate_minutes;
@@ -282,14 +279,19 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     // Reading crontab file line by line and putting contents into array of structures
     i = 0;
     while(fgets(line, sizeof line, crontab_file) != NULL){
-        char crontab_minute[2];
-        char crontab_hour[2];
-        char crontab_date[2];
-        char crontab_month[2];
-        char crontab_day[2];
+        char crontab_minute[3];
+        char crontab_hour[3];
+        char crontab_date[3];
+        char crontab_month[3];
+        char crontab_day[10];
         char crontab_command[COMMAND_SIZE + 1];
 
-        if(line[0] != '#') {
+        int j = 0;
+        while(isspace(line[j])) {  // Test for whitespace at start of sentence
+                j++;
+            }
+
+        if(line[j] != '#') {
             sscanf(line, "%s %s %s %s %s %s", crontab_minute, crontab_hour,
                    crontab_date, crontab_month, crontab_day, crontab_command);
             strcpy(crontabs[i].minute, crontab_minute);
@@ -299,8 +301,9 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
             i++;
+            }
         }
-    }
+
 
     for(int k = 0; k < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; k++){
 
@@ -324,10 +327,12 @@ int main(int argc, char *argv[]){
     FILE *crontab_file = file_opener(argv[2]);
     FILE *estimates_file = file_opener(argv[3]);
 
-    printf("%i", month_num("Jan"));
-
     // Running program
-    // estimatecron(month, crontab_file, estimates_file);
+    printf("%i\n", month_num("apri"));
+    printf("%i\n", days_in_month(month_num("apri")));
+    printf("%i\n", day_num("tuesd"));
+    printf("%i\n", first_day(day_num("tuesd")));
+    estimatecron(month, crontab_file, estimates_file);
 
     return 0;
 }
