@@ -250,13 +250,18 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     int counter_size = 0;
     int crontabs_size = 0;
     int estimates_size = 0;
+    int timer_size = 0;
     bool duplicate = false;
 
     struct{
         char command[COMMAND_SIZE + 1];
         int counter;
-        int timer;
     }counter[MAX_COMMANDS];
+
+    struct{
+        char command[COMMAND_SIZE + 1];
+        int timer;
+    }timer[100];
 
     struct{
         char command[COMMAND_SIZE + 1];
@@ -316,10 +321,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
             crontabs_size++;
-
-            printf("(DEBUGGING) Minutes: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute, crontabs[i].hour, crontabs[i].date,
-                   crontabs[i].month, crontabs[i].day, crontabs[i].command); // Debugging Lines
-
             i++;
             }
         }
@@ -328,15 +329,14 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                crontabs[z].day, crontabs[z].command);
     }
 
-
     for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
         int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
         int current_hour = (j % MINUTES_IN_DAY) * HOURS_IN_DAY;
-        for(int k = 0; k < sizeof counter / sizeof *counter; k++){
-            if(counter[k].timer >= 0){
-                --counter[k].timer;
+        for(int k = 0; k < timer_size; k++){
+            if(timer[k].timer >= 0){
+                --timer[k].timer;
             }
-            if(counter[k].timer == 0){
+            if(timer[k].timer == 0){
                 --nrunning;
             }
         }
@@ -358,13 +358,19 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                                 ++counter_size;
                             }
                             else{
-                                ++counter[counter_size].counter;
-                            }
-                            for(int m = 0; m < estimates_size; m++){
-                                if(strcmp(estimates[m].command, counter[counter_size].command) == 0) {
-                                        counter[counter_size].timer = estimates[m].minutes;
+                                for(int l = 0; l < counter_size + 1; l++) {
+                                    if(strcmp(counter[l].command, crontabs[k].command) == 0){
+                                        ++counter[counter_size].counter;
+                                    }
                                 }
                             }
+                            strcpy(timer[timer_size].command, crontabs[k].command);
+                            for(int m = 0; m < estimates_size; m++){
+                                if(strcmp(estimates[m].command, timer[timer_size].command) == 0) {
+                                        timer[timer_size].timer = estimates[m].minutes;
+                                }
+                            }
+                            ++timer_size;
                         }
                     }
                 }
@@ -385,6 +391,7 @@ int main(int argc, char *argv[]){
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
+
 
     return 0;
 }
