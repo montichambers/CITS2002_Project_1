@@ -1,4 +1,4 @@
-# format:  command-name   minutes
+     # format:  command-name   minutes
 weekly-backup             2
 daily-backup              2
 send-monthly-newsletter   10
