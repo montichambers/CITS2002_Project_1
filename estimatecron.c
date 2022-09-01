@@ -250,6 +250,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     int counter_size = 0;
     int crontabs_size = 0;
     int estimates_size = 0;
+    bool duplicate = false;
 
     struct{
         char command[COMMAND_SIZE + 1];
@@ -334,22 +335,31 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                 --nrunning;
             }
         }
-        for(int k = 0; k < sizeof crontabs / sizeof *crontabs; k++){
+        for(int k = 0; k < crontabs_size; k++){
             if(strcmp(crontabs[k].month, always) == 0 || month_num(crontabs[k].month) == month_int){
                 if(strcmp(crontabs[k].day, always) == 0 || day_num(crontabs[k].day) == current_day){
                     if(strcmp(crontabs[k].hour, always) == 0 || atoi(crontabs[k].hour) == current_hour){
                         if(strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == j){
                             ++pid;
                             ++nrunning;
+                            for(int l = 0; l < counter_size + 1; l++){
+                                if(strcmp(counter[l].command, crontabs[k].command) == 0) {
+                                    duplicate = true;
+                                }
+                            }
+                            if(! duplicate){
                                 strcpy(counter[counter_size].command, crontabs[k].command);
                                 ++counter[counter_size].counter;
                                 ++counter_size;
-                                for(int m = 0; m < estimates_size; m++){
-                                    int l;
-                                    if(strcmp(estimates[m].command, counter[l].command) == 0) {
-                                        counter[l].timer = estimates[m].minutes;
-                                    }
+                            }
+                            else{
+                                ++counter[counter_size].counter;
+                            }
+                            for(int m = 0; m < estimates_size; m++){
+                                if(strcmp(estimates[m].command, counter[counter_size].command) == 0) {
+                                        counter[counter_size].timer = estimates[m].minutes;
                                 }
+                            }
                         }
                     }
                 }
