@@ -272,7 +272,13 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     while(fgets(line, sizeof line, estimates_file) != NULL){
         char estimate_name[COMMAND_SIZE + 1];
         int estimate_minutes = 0;
-        if(line[0] != '#') {
+
+        int j = 0;
+        while(isspace(line[j])) {  // Test for whitespace at start of sentence
+            j++;
+        }
+
+        if(line[j] != '#') {
             sscanf(line, "%s %i", estimate_name, &estimate_minutes);
             strcpy(estimates[i].command, estimate_name);
             estimates[i].minutes = estimate_minutes;
@@ -290,7 +296,12 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
         char crontab_day[10];
         char crontab_command[COMMAND_SIZE + 1];
 
-        if(line[0] != '#') {
+        int j = 0;
+        while(isspace(line[j])) {  // Test for whitespace at start of sentence
+                j++;
+            }
+
+        if(line[j] != '#') {
             sscanf(line, "%s %s %s %s %s %s", crontab_minute, crontab_hour,
                    crontab_date, crontab_month, crontab_day, crontab_command);
             strcpy(crontabs[i].minute, crontab_minute);
@@ -300,8 +311,9 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
             i++;
+            }
         }
-    }
+
 
     for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
         int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
