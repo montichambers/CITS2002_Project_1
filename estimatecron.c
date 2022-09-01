@@ -102,11 +102,6 @@ FILE *file_opener(char filename[]) {
 int month_num(char *month){
     /* Returns the integer of a month given as a string */
 
-    if (strcmp(month, "*") == 0) {
-        printf("STAR");
-        return 100;
-    }
-
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
@@ -252,6 +247,9 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     char *always = "*";
     int pid = 0;
     int nrunning = 0;
+    int counter_size = 0;
+    int crontabs_size = 0;
+    int estimates_size = 0;
 
     struct{
         char command[COMMAND_SIZE + 1];
@@ -287,6 +285,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             sscanf(line, "%s %i", estimate_name, &estimate_minutes);
             strcpy(estimates[i].command, estimate_name);
             estimates[i].minutes = estimate_minutes;
+            estimates_size++;
             i++;
         }
     }
@@ -315,6 +314,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].month, crontab_month);
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
+            crontabs_size++;
 
             printf("(DEBUGGING) Minutes: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute, crontabs[i].hour, crontabs[i].date,
                    crontabs[i].month, crontabs[i].day, crontabs[i].command); // Debugging Lines
@@ -322,6 +322,11 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             i++;
             }
         }
+    for(int z = 0; z < 5; z++) {
+        printf("%s %s %s %s %s %s\n", crontabs[z].minute, crontabs[z].hour, crontabs[z].date, crontabs[z].month,
+               crontabs[z].day, crontabs[z].command);
+    }
+
 
     for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
         int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
@@ -335,28 +340,27 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             }
         }
         for(int k = 0; k < sizeof crontabs / sizeof *crontabs; k++){
-            if(month_num(crontabs[k].month) == month_int || strcmp(crontabs[k].month, always) == 0){
-                if(day_num(crontabs[k].day) == current_day || strcmp(crontabs[k].day, always) == 0){
-                    if(atoi(crontabs[k].hour) == current_hour || strcmp(crontabs[k].hour, always) == 0){
-                        if(atoi(crontabs[k].minute) == j || strcmp(crontabs[k].minute, always) == 0){
+            if(strcmp(crontabs[k].month, always) == 0 || month_num(crontabs[k].month) == month_int){
+                if(strcmp(crontabs[k].day, always) == 0 || day_num(crontabs[k].day) == current_day){
+                    if(strcmp(crontabs[k].hour, always) == 0 || atoi(crontabs[k].hour) == current_hour){
+                        if(strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == j){
                             ++pid;
                             ++nrunning;
-                            for(int l = 0; l < sizeof counter / sizeof *counter; l++){
-                                strcpy(counter[l].command, crontabs[k].command);
-                                ++counter[l].counter;
-                                for(int m = 0; m < sizeof estimates / sizeof *estimates; m++){
-                                    if(strcmp(estimates[m].command, counter[l].command) == 0){
+                                strcpy(counter[counter_size].command, crontabs[k].command);
+                                ++counter[counter_size].counter;
+                                ++counter_size;
+                                for(int m = 0; m < estimates_size; m++){
+                                    int l;
+                                    if(strcmp(estimates[m].command, counter[l].command) == 0) {
                                         counter[l].timer = estimates[m].minutes;
                                     }
                                 }
-                            }
                         }
                     }
                 }
             }
         }
     }
-    printf("%i, %i", pid, nrunning);
 }
 
 int main(int argc, char *argv[]){
