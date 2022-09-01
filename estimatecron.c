@@ -316,6 +316,10 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
             crontabs_size++;
+
+            printf("(DEBUGGING) Minutes: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute, crontabs[i].hour, crontabs[i].date,
+                   crontabs[i].month, crontabs[i].day, crontabs[i].command); // Debugging Lines
+
             i++;
             }
         }
@@ -323,6 +327,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
         printf("%s %s %s %s %s %s\n", crontabs[z].minute, crontabs[z].hour, crontabs[z].date, crontabs[z].month,
                crontabs[z].day, crontabs[z].command);
     }
+
 
     for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
         int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
@@ -380,7 +385,6 @@ int main(int argc, char *argv[]){
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
-
 
     return 0;
 }
