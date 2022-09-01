@@ -102,6 +102,11 @@ FILE *file_opener(char filename[]) {
 int month_num(char *month){
     /* Returns the integer of a month given as a string */
 
+    if (strcmp(month, "*") == 0) {
+        printf("STAR");
+        return 100;
+    }
+
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
@@ -310,10 +315,13 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].month, crontab_month);
             strcpy(crontabs[i].day, crontab_day);
             strcpy(crontabs[i].command, crontab_command);
+
+            printf("(DEBUGGING) Minutes: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute, crontabs[i].hour, crontabs[i].date,
+                   crontabs[i].month, crontabs[i].day, crontabs[i].command); // Debugging Lines
+
             i++;
             }
         }
-
 
     for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
         int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
@@ -363,7 +371,6 @@ int main(int argc, char *argv[]){
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
-
 
     return 0;
 }
