@@ -85,9 +85,10 @@
 #define MAX_COMMANDS 20
 #define MINUTES_IN_DAY 1440
 #define MINUTES_IN_HOUR 60
+#define HOURS_IN_DAY 24
 
 FILE *file_opener(char filename[]) {
-    /* Returns  */
+    /* Returns the opened file pointer */
 
     FILE *name = fopen(filename, "r");
 
@@ -105,12 +106,12 @@ int month_num(char *month){
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
-    const char *months[12] = {"january", "february", "march", // all months as full name
+    const char *months[12] = {"january", "february", "march",
                               "april", "may", "june",
                               "july", "august", "september",
                               "october", "november", "december"};
     for(int i = 0; i < 12; i++){
-        if(strstr(months[i], month) != NULL){ // Compares whether given month is equal to its long month
+        if(strstr(months[i], month) != NULL){ // Determines whether a given month is a valid month (or substring)
             return i + 1;
         }
     }
@@ -125,7 +126,7 @@ int day_num(char *day){
     if(isnumber(*day)){ // Return the day integer if it is already one
         return atoi(day);
     }
-    const char *days[7] = {"monday", "tuesday", "wednesday", // all days as full name
+    const char *days[7] = {"monday", "tuesday", "wednesday",
                              "thursday", "friday", "saturday","sunday"};
 
     for(int i = 0; i < 7; i++){
@@ -244,14 +245,14 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     int i = 0;
     char line[LINE_SIZE];
     int month_int = month_num(month);
-    char *always = "*";
-    int pid = 0;
-    int nrunning = 0;
-    int counter_size = 0;
-    int crontabs_size = 0;
-    int estimates_size = 0;
-    int timer_size = 0;
-    bool duplicate = false;
+    char *always = "*"; // '*' means that the command will run regardless of that info
+    int pid = 0; // Keep track of total commands run in the month
+    int nrunning = 0; // Keep track of current commands running at a particular time
+    int max_nrunning = 0; // Keep track of the highest value nrunning reaches
+    int counter_size = 0; // Keep track of the size of counter array
+    int crontabs_size = 0; // Keep track of the size of crontabs array
+    int estimates_size = 0; // Keep track of the size of estimates array
+    int timer_size = 0; // Keep track of the size of timer array
 
     struct{
         char command[COMMAND_SIZE + 1];
@@ -313,7 +314,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
 
         if(line[j] != '#') {
             sscanf(line, "%s %s %s %s %s %s", crontab_minute, crontab_hour,
-                   crontab_date, crontab_month, crontab_day, crontab_command);
+                   crontab_date,crontab_month, crontab_day, crontab_command);
             strcpy(crontabs[i].minute, crontab_minute);
             strcpy(crontabs[i].hour, crontab_hour);
             strcpy(crontabs[i].date, crontab_date);
@@ -324,60 +325,58 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             i++;
             }
         }
-    for(int z = 0; z < 5; z++) {
-        printf("%s %s %s %s %s %s\n", crontabs[z].minute, crontabs[z].hour, crontabs[z].date, crontabs[z].month,
-               crontabs[z].day, crontabs[z].command);
-    }
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
+        counter[i].counter = 0; // Initialise all counters to 0
     }
-
-    for(int j = 0; j < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; j++){
-        int current_day = (j / MINUTES_IN_DAY + first_day(month_int)) % 7;
-        int current_hour = j % MINUTES_IN_DAY;
+    for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; minute++){
+        int current_day = (minute / MINUTES_IN_DAY + first_day(month_int)) % 7;
+        int current_hour = (minute / MINUTES_IN_HOUR) % HOURS_IN_DAY;
         for(int k = 0; k < timer_size; k++){
             if(timer[k].timer >= 0){
-                --timer[k].timer;
+                --timer[k].timer; // Decrement each timer
             }
             if(timer[k].timer == 0){
-                --nrunning;
+                --nrunning; // Decrement number of command running if its timer finishes
             }
         }
+        timer_size = 0;
         for(int k = 0; k < crontabs_size; k++){
             if(strcmp(crontabs[k].month, always) == 0 || month_num(crontabs[k].month) == month_int){ // Test if the month is correct
                 if(strcmp(crontabs[k].day, always) == 0 || day_num(crontabs[k].day) == current_day){ // Test if the day is correct
-                    if(strcmp(crontabs[k].date, always) == 0 || atoi(crontabs[k].date) == (j / MINUTES_IN_DAY) + 1) { // Test if the date is correct
+                    if(strcmp(crontabs[k].date, always) == 0 || atoi(crontabs[k].date) == (minute / MINUTES_IN_DAY) + 1) { // Test if the date is correct
                         if (strcmp(crontabs[k].hour, always) == 0 || atoi(crontabs[k].hour) == current_hour) { // Test if the hour is correct
-                            if (strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == (j / MINUTES_IN_DAY) % MINUTES_IN_DAY) { // Test if the minute is correct
-                                ++pid;
-                                ++nrunning;
+                            if (strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == (minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR) { // Test if the minute is correct
+                                ++pid; // Increment total commands run
+                                ++nrunning; // Increment current running commands
+                                bool duplicate = false; // Duplicate flag
                                 for (int l = 0; l < counter_size + 1; l++) {
-                                    if (strcmp(counter[l].command, crontabs[k].command) == 0) {
+                                    if (strcmp(counter[l].command, crontabs[k].command) == 0) { // Test if command is already in counter array
                                         duplicate = true;
                                     }
                                 }
                                 if (!duplicate) {
-                                    strcpy(counter[counter_size].command, crontabs[k].command);
+                                    strcpy(counter[counter_size].command, crontabs[k].command); // Add command to counter if it's not a duplicate
                                     ++counter[counter_size].counter;
                                     ++counter_size;
                                 } else {
                                     for (int l = 0; l < counter_size + 1; l++) {
                                         if (strcmp(counter[l].command, crontabs[k].command) == 0) {
-                                            ++counter[counter_size].counter;
+                                            ++counter[counter_size].counter; // Increment the command counter if it is a duplicate
                                         }
                                     }
                                 }
-                                for (int t = 0; t < timer_size; t++) {
-                                    if (timer[t].timer == -1) {
-                                        strcpy(timer[timer_size].command, crontabs[k].command);
-                                    }
+                                int t = 0;
+                                while(timer[t].timer != -1){ // Find first free timer array
+                                    ++t;
+                                    ++timer_size;
                                 }
+                                strcpy(timer[t].command, crontabs[k].command); // If it is then store the command in array position
                                 for (int m = 0; m < estimates_size; m++) {
-                                    if (strcmp(estimates[m].command, timer[timer_size].command) == 0) {
-                                        timer[timer_size].timer = estimates[m].minutes;
+                                    if (strcmp(estimates[m].command, timer[t].command) == 0) {
+                                        timer[t].timer = estimates[m].minutes; // Store commands estimated minute in timer
                                     }
                                 }
-                                ++timer_size;
                             }
                         }
                     }
@@ -385,7 +384,20 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             }
         }
     }
-    printf("%i", pid);
+    int max_counter = 0;
+    char max_counter_name[COMMAND_SIZE];
+    for(i = 0; i < counter_size; i++){
+        if(counter[i].counter > max_counter){
+            max_counter = counter[i].counter;
+        }
+    }
+    for(i = 0; i < counter_size; i++){
+        if(counter[i].counter == max_counter){
+            strcpy(max_counter_name, counter[i].command);
+        }
+    }
+    printf("%s\n", max_counter_name);
+    printf("%i\n", pid);
 }
 
 int main(int argc, char *argv[]){
