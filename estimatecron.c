@@ -338,6 +338,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             }
             if(timer[k].timer == 0){
                 --nrunning; // Decrement number of command running if its timer finishes
+                printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", crontabs[k].command, minute, pid, nrunning);
             }
         }
         timer_size = 0;
@@ -349,6 +350,10 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                             if (strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == (minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR) { // Test if the minute is correct
                                 ++pid; // Increment total commands run
                                 ++nrunning; // Increment current running commands
+                                printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[k].command, minute, pid, nrunning);
+                                if(nrunning > max_nrunning){
+                                    max_nrunning = nrunning;
+                                }
                                 bool duplicate = false; // Duplicate flag
                                 for (int l = 0; l < counter_size + 1; l++) {
                                     if (strcmp(counter[l].command, crontabs[k].command) == 0) { // Test if command is already in counter array
@@ -373,7 +378,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                                 }
                                 strcpy(timer[t].command, crontabs[k].command); // If it is then store the command in array position
                                 for (int m = 0; m < estimates_size; m++) {
-                                    if (strcmp(estimates[m].command, timer[t].command) == 0) {
+                                    if(strcmp(estimates[m].command, timer[t].command) == 0) {
                                         timer[t].timer = estimates[m].minutes; // Store commands estimated minute in timer
                                     }
                                 }
@@ -396,8 +401,9 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(max_counter_name, counter[i].command);
         }
     }
-    printf("%s\n", max_counter_name);
-    printf("%i\n", pid);
+    printf("The command which ran the most times was %s\n", max_counter_name);
+    printf("The total amount of commands run was %i\n", pid);
+    printf("The total number of commands running at a single time was %i\n", max_nrunning);
 }
 
 int main(int argc, char *argv[]){
