@@ -110,6 +110,11 @@ int month_num(char *month){
                               "april", "may", "june",
                               "july", "august", "september",
                               "october", "november", "december"};
+
+    char s_month[5];
+    char new_month = memcmp(month, s_month, 3);
+    printf("MONTH: %c\n", new_month);
+
     for(int i = 0; i < 12; i++){
         if(strstr(months[i], month) != NULL){ // Determines whether a given month is a valid month (or substring)
             return i + 1;
@@ -325,6 +330,67 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             i++;
             }
         }
+
+    //Error Checker for each line in crontabs file
+    for (int j = 0; j < crontabs_size; ++j) {
+        //Check for correct minute domain
+        if (strcmp(crontabs[j].minute, always) != 0) {
+            if (atoi(crontabs[j].minute) < 0 || atoi(crontabs[j].minute) > 59) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
+                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
+                fprintf(stderr, "Minutes value %s is not in the required domain!!!\n", crontabs[j].minute);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct hour domain
+        if (strcmp(crontabs[j].hour, always) != 0) {
+            if (atoi(crontabs[j].hour) < 0 || atoi(crontabs[j].hour) > 23) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
+                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
+                fprintf(stderr, "Hour value %s is not in the required domain!!!\n", crontabs[j].hour);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct date domain
+        if (strcmp(crontabs[j].date, always) != 0) {
+            if (atoi(crontabs[j].date) < 1 || atoi(crontabs[j].date) > 31) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
+                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
+                fprintf(stderr, "Date value %s is not in the required domain!!!\n", crontabs[j].date);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct month domain
+        if (strcmp(crontabs[j].month, always) != 0) {
+            if (atoi(crontabs[j].month) < 0 || atoi(crontabs[j].month) > 11) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
+                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
+                fprintf(stderr, "Month value %s is not in the required domain!!!\n", crontabs[j].month);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct day domain
+        if (strcmp(crontabs[j].day, always) != 0) {
+            if (atoi(crontabs[j].day) < 0 || atoi(crontabs[j].day) > 59) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
+                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
+                fprintf(stderr, "Day value %s is not in the required domain!!!\n", crontabs[j].day);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    //Error Checker for each line in estimates file
+    //for (int k = 0; k < estimates_size; ++k) {
+        //Check for correct minute input
+       // printf("FINAL: %d\n", estimates[1].minutes);
+   // }
+
+
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
         counter[i].counter = 0; // Initialise all counters to 0
