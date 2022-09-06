@@ -332,7 +332,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; minute++){
         int current_day = (minute / MINUTES_IN_DAY + first_day(month_int)) % 7;
         int current_hour = (minute / MINUTES_IN_HOUR) % HOURS_IN_DAY;
-        for(int k = 0; k < timer_size; k++){
+        for(int k = 0; k < timer_size + 1; k++){
             if(timer[k].timer >= 0){
                 --timer[k].timer; // Decrement each timer
             }
