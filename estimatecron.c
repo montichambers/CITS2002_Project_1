@@ -348,7 +348,6 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
 void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
         int crontabs_size, int estimates_size){
 
-    printf("test");
     int i;
     char *always = "*";
     //Error Checker for each line in crontabs file
