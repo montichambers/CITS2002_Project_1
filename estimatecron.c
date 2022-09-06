@@ -361,6 +361,7 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
 
 void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
         int crontabs_size, int estimates_size){
+
         int i;
         char *always = "*";
         //Error Checker for each line in crontabs file
@@ -434,7 +435,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     int i;
     int j;
     int month_int = month_num(month);
-    char *always = "*"; // '*' means that the command will run regardless of that info
     int pid = 0; // Total commands run in the month
     int nrunning = 0; // Number of current commands running at a particular time
     int max_nrunning = 0; // Highest value nrunning reaches
