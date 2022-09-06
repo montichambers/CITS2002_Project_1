@@ -100,20 +100,31 @@ FILE *file_opener(char filename[]) {
     return name;
 }
 
+char substring(char word[100]) {
+    char substring[100];
+    int start = 0;
+    int end = 0;
+    int length_substring = 0;
+    int count = 0;
+
+    while (count < length_substring) {
+        substring[count] = word[start + count -1];
+        count ++;
+    }
+    substring[count] = '\0';
+}
+
 int month_num(char *month){
     /* Returns the integer of a month given as a string */
 
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
+
     const char *months[12] = {"january", "february", "march",
                               "april", "may", "june",
                               "july", "august", "september",
                               "october", "november", "december"};
-
-    char s_month[5];
-    char new_month = memcmp(month, s_month, 3);
-    printf("MONTH: %c\n", new_month);
 
     for(int i = 0; i < 12; i++){
         if(strstr(months[i], month) != NULL){ // Determines whether a given month is a valid month (or substring)
@@ -350,19 +361,19 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
 
 void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
         int crontabs_size, int estimates_size){
-    int i;
-    char *always = "*";
-    //Error Checker for each line in crontabs file
-    for(i = 0; i < crontabs_size; ++i) {
-        //Check for correct minute domain
-        if(strcmp(crontabs[i].minute, always) != 0) {
-            if(atoi(crontabs[i].minute) < 0 || atoi(crontabs[i].minute) > 59) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
-                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
-                fprintf(stderr, "Minutes value %s is not in the required domain!!!\n", crontabs[i].minute);
-                exit(EXIT_FAILURE);
+        int i;
+        char *always = "*";
+        //Error Checker for each line in crontabs file
+        for(i = 0; i < crontabs_size; ++i) {
+            //Check for correct minute domain
+            if(strcmp(crontabs[i].minute, always) != 0) {
+                if(atoi(crontabs[i].minute) < 0 || atoi(crontabs[i].minute) > 59) {
+                    printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                           crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                    fprintf(stderr, "Minutes value %s is not in the required domain!!!\n", crontabs[i].minute);
+                    exit(EXIT_FAILURE);
+                }
             }
-        }
 
         //Check for correct hour domain
         if(strcmp(crontabs[i].hour, always) != 0) {
@@ -530,6 +541,8 @@ int main(int argc, char *argv[]){
     char *month = argv[1];
     FILE *crontab_file = file_opener(argv[2]);
     FILE *estimates_file = file_opener(argv[3]);
+
+    printf("Test: %s\n", substring(month));
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
