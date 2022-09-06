@@ -112,7 +112,7 @@ int month_num(char *month){
                               "october", "november", "december"};
     for(int i = 0; i < 12; i++){
         if(strstr(months[i], month) != NULL){ // Determines whether a given month is a valid month (or substring)
-            return i + 1;
+            return i;
         }
     }
     fprintf(stderr, "%s is an invalid month\n", month);
@@ -126,12 +126,12 @@ int day_num(char *day){
     if(isnumber(*day)){ // Return the day integer if it is already one
         return atoi(day);
     }
-    const char *days[7] = {"monday", "tuesday", "wednesday",
-                             "thursday", "friday", "saturday","sunday"};
+    const char *days[7] = {"sunday", "monday", "tuesday", "wednesday",
+                             "thursday", "friday", "saturday"};
 
     for(int i = 0; i < 7; i++){
         if(strstr(days[i], day) != NULL){ // Compares whether given day is a valid day (or substring)
-            return i + 1;
+            return i;
         }
     }
     fprintf(stderr, "%s is an invalid day\n", day);
@@ -143,40 +143,40 @@ int days_in_month(int month){
 
     int daysinmonth;
     switch (month) {
-        case 1:
+        case 0:
             daysinmonth = 31;
             break;
-        case 2:
+        case 1:
             daysinmonth = 28;
             break;
-        case 3:
+        case 2:
             daysinmonth = 31;
+            break;
+        case 3:
+            daysinmonth = 30;
             break;
         case 4:
-            daysinmonth = 30;
-            break;
-        case 5:
             daysinmonth = 31;
             break;
-        case 6:
+        case 5:
             daysinmonth = 30;
+            break;
+        case 6:
+            daysinmonth = 31;
             break;
         case 7:
             daysinmonth = 31;
             break;
         case 8:
-            daysinmonth = 31;
+            daysinmonth = 30;
             break;
         case 9:
-            daysinmonth = 30;
-            break;
-        case 10:
             daysinmonth = 31;
             break;
-        case 11:
+        case 10:
             daysinmonth = 30;
             break;
-        case 12:
+        case 11:
             daysinmonth = 31;
             break;
         default:
@@ -191,40 +191,40 @@ int first_day(int month){
 
     int first_day;
     switch (month) {
-        case 1:
+        case 0:
             first_day = 6;
+            break;
+        case 1:
+            first_day = 2;
             break;
         case 2:
             first_day = 2;
             break;
         case 3:
-            first_day = 2;
+            first_day = 5;
             break;
         case 4:
-            first_day = 5;
-            break;
-        case 5:
             first_day = 0;
             break;
-        case 6:
+        case 5:
             first_day = 3;
             break;
-        case 7:
+        case 6:
             first_day = 5;
             break;
-        case 8:
+        case 7:
             first_day = 1;
             break;
-        case 9:
+        case 8:
             first_day = 4;
             break;
-        case 10:
+        case 9:
             first_day = 6;
             break;
-        case 11:
+        case 10:
             first_day = 2;
             break;
-        case 12:
+        case 11:
             first_day = 4;
             break;
         default:
@@ -234,71 +234,26 @@ int first_day(int month){
     return first_day;
 }
 
-void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
-    /* Calculates and prints:
-     * 1. The name of the most frequently executed command
-     * 2. The total number of commands invoked
-     * 3. The maximum number of commands running at any time
-     */
+struct Estimates{
+    char command[COMMAND_SIZE + 1];
+    int minutes;
+};
 
-    // Defining variables
+struct Crontabs{
+    char minute[3];
+    char hour[3];
+    char date[3];
+    char month[3];
+    char day[10];
+    char command[COMMAND_SIZE + 1];
+};
+
+int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
     int i = 0;
+    int j;
+    int crontabs_size = 0;
     char line[LINE_SIZE];
-    int month_int = month_num(month);
-    char *always = "*"; // '*' means that the command will run regardless of that info
-    int pid = 0; // Keep track of total commands run in the month
-    int nrunning = 0; // Keep track of current commands running at a particular time
-    int max_nrunning = 0; // Keep track of the highest value nrunning reaches
-    int counter_size = 0; // Keep track of the size of counter array
-    int crontabs_size = 0; // Keep track of the size of crontabs array
-    int estimates_size = 0; // Keep track of the size of estimates array
-    int timer_size = 0; // Keep track of the size of timer array
-
-    struct{
-        char command[COMMAND_SIZE + 1];
-        int counter;
-    }counter[MAX_COMMANDS];
-
-    struct{
-        char command[COMMAND_SIZE + 1];
-        int timer;
-    }timer[MAX_COMMANDS];
-
-    struct{
-        char command[COMMAND_SIZE + 1];
-        int minutes;
-    }estimates[MAX_COMMANDS];
-
-    struct{
-        char minute[3];
-        char hour[3];
-        char date[3];
-        char month[3];
-        char day[10];
-        char command[COMMAND_SIZE + 1];
-    }crontabs[MAX_COMMANDS];
-
-    // Reading estimates file line by line and putting contents into array of structures
-    while(fgets(line, sizeof line, estimates_file) != NULL){
-        char estimate_name[COMMAND_SIZE + 1];
-        int estimate_minutes = 0;
-
-        int j = 0;
-        while(isspace(line[j])) {  // Test for whitespace at start of sentence
-            j++;
-        }
-
-        if(line[j] != '#') {
-            sscanf(line, "%s %i", estimate_name, &estimate_minutes);
-            strcpy(estimates[i].command, estimate_name);
-            estimates[i].minutes = estimate_minutes;
-            estimates_size++;
-            i++;
-        }
-    }
-
     // Reading crontab file line by line and putting contents into array of structures
-    i = 0;
     while(fgets(line, sizeof line, crontab_file) != NULL){
         char crontab_minute[3];
         char crontab_hour[3];
@@ -307,10 +262,10 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
         char crontab_day[10];
         char crontab_command[COMMAND_SIZE + 1];
 
-        int j = 0;
+        j = 0;
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
-                j++;
-            }
+            j++;
+        }
 
         if(line[j] != '#') {
             sscanf(line, "%s %s %s %s %s %s", crontab_minute, crontab_hour,
@@ -323,63 +278,128 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             strcpy(crontabs[i].command, crontab_command);
             crontabs_size++;
             i++;
-            }
         }
+    }
+    return crontabs_size;
+}
+
+int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_file){
+    int i = 0;
+    int j;
+    int estimates_size = 0;
+    char line[LINE_SIZE];
+    // Reading estimates file line by line and putting contents into array of structures
+    while(fgets(line, sizeof line, estimates_file) != NULL){
+        char estimate_name[COMMAND_SIZE + 1];
+        int estimate_minutes = 0;
+
+        j = 0;
+        while(isspace(line[j])) {  // Test for whitespace at start of sentence
+            j++;
+        }
+
+        if(line[j] != '#') {
+            sscanf(line, "%s %i", estimate_name, &estimate_minutes);
+            strcpy(estimates[i].command, estimate_name);
+            estimates[i].minutes = estimate_minutes;
+            estimates_size++;
+            i++;
+        }
+    }
+    return estimates_size;
+}
+
+void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
+    /* Calculates and prints:
+     * 1. The name of the most frequently executed command
+     * 2. The total number of commands invoked
+     * 3. The maximum number of commands running at any time
+     */
+
+    // Defining variables
+    int i;
+    int j;
+    int month_int = month_num(month);
+    char *always = "*"; // '*' means that the command will run regardless of that info
+    int pid = 0; // Total commands run in the month
+    int nrunning = 0; // Number of current commands running at a particular time
+    int max_nrunning = 0; // Highest value nrunning reaches
+    int crontabs_size; // Size of crontabs array
+    int estimates_size; // Size of estimates array
+    int counter_size = 0; // Size of counter array
+    int timer_size = 0; // Size of timer array
+
+    struct{
+        char command[COMMAND_SIZE + 1];
+        int counter;
+    }counter[MAX_COMMANDS];
+
+    struct{
+        char command[COMMAND_SIZE + 1];
+        int timer;
+    }timer[MAX_COMMANDS];
+
+    struct Crontabs crontabs[MAX_COMMANDS];
+    crontabs_size = read_crontabs(crontabs, crontab_file);
+
+    struct Estimates estimates[MAX_COMMANDS];
+    estimates_size = read_estimates(estimates, estimates_file);
+
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
         counter[i].counter = 0; // Initialise all counters to 0
     }
     for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; minute++){
         int current_day = (minute / MINUTES_IN_DAY + first_day(month_int)) % 7;
-        int current_hour = (minute / MINUTES_IN_HOUR) % HOURS_IN_DAY;
-        for(int k = 0; k < timer_size + 1; k++){
-            if(timer[k].timer >= 0){
-                --timer[k].timer; // Decrement each timer
+        int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
+        for(i = 0; i < timer_size + 1; i++){
+            if(timer[i].timer >= 0){
+                --timer[i].timer; // Decrement each timer
             }
-            if(timer[k].timer == 0){
+            if(timer[i].timer == 0){
                 --nrunning; // Decrement number of command running if its timer finishes
-                printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", crontabs[k].command, minute, pid, nrunning);
+                printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
             }
         }
         timer_size = 0;
-        for(int k = 0; k < crontabs_size; k++){
-            if(strcmp(crontabs[k].month, always) == 0 || month_num(crontabs[k].month) == month_int){ // Test if the month is correct
-                if(strcmp(crontabs[k].day, always) == 0 || day_num(crontabs[k].day) == current_day){ // Test if the day is correct
-                    if(strcmp(crontabs[k].date, always) == 0 || atoi(crontabs[k].date) == (minute / MINUTES_IN_DAY) + 1) { // Test if the date is correct
-                        if (strcmp(crontabs[k].hour, always) == 0 || atoi(crontabs[k].hour) == current_hour) { // Test if the hour is correct
-                            if (strcmp(crontabs[k].minute, always) == 0 || atoi(crontabs[k].minute) == (minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR) { // Test if the minute is correct
+        for(i = 0; i < crontabs_size; i++){
+            if(strcmp(crontabs[i].month, always) == 0 || month_num(crontabs[i].month) == month_int){ // Test if the month is correct
+                if(strcmp(crontabs[i].day, always) == 0 || day_num(crontabs[i].day) == current_day){ // Test if the day is correct
+                    if(strcmp(crontabs[i].date, always) == 0 || atoi(crontabs[i].date) == (minute / MINUTES_IN_DAY) + 1) { // Test if the date is correct
+                        if (strcmp(crontabs[i].hour, always) == 0 || atoi(crontabs[i].hour) == current_hour) { // Test if the hour is correct
+                            if (strcmp(crontabs[i].minute, always) == 0 || atoi(crontabs[i].minute) == (minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR) { // Test if the minute is correct
                                 ++pid; // Increment total commands run
                                 ++nrunning; // Increment current running commands
-                                printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[k].command, minute, pid, nrunning);
+                                printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
                                 if(nrunning > max_nrunning){
                                     max_nrunning = nrunning;
                                 }
                                 bool duplicate = false; // Duplicate flag
-                                for (int l = 0; l < counter_size + 1; l++) {
-                                    if (strcmp(counter[l].command, crontabs[k].command) == 0) { // Test if command is already in counter array
+                                for (j = 0; j < counter_size + 1; j++) {
+                                    if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
                                         duplicate = true;
                                     }
                                 }
                                 if (!duplicate) {
-                                    strcpy(counter[counter_size].command, crontabs[k].command); // Add command to counter if it's not a duplicate
+                                    strcpy(counter[counter_size].command, crontabs[i].command); // Add command to counter if it's not a duplicate
                                     ++counter[counter_size].counter;
                                     ++counter_size;
                                 } else {
-                                    for (int l = 0; l < counter_size + 1; l++) {
-                                        if (strcmp(counter[l].command, crontabs[k].command) == 0) {
-                                            ++counter[counter_size].counter; // Increment the command counter if it is a duplicate
+                                    for (j = 0; j < counter_size + 1; j++) {
+                                        if (strcmp(counter[j].command, crontabs[i].command) == 0) {
+                                            ++counter[j].counter; // Increment the command counter if it is a duplicate
                                         }
                                     }
                                 }
-                                int t = 0;
-                                while(timer[t].timer != -1){ // Find first free timer array
-                                    ++t;
+                                j = 0;
+                                while(timer[j].timer != -1){ // Find first free timer array
+                                    ++j;
                                     ++timer_size;
                                 }
-                                strcpy(timer[t].command, crontabs[k].command); // If it is then store the command in array position
+                                strcpy(timer[j].command, crontabs[i].command); // If it is then store the command in array position
                                 for (int m = 0; m < estimates_size; m++) {
-                                    if(strcmp(estimates[m].command, timer[t].command) == 0) {
-                                        timer[t].timer = estimates[m].minutes; // Store commands estimated minute in timer
+                                    if(strcmp(estimates[m].command, timer[j].command) == 0) {
+                                        timer[j].timer = estimates[m].minutes; // Store commands estimated minute in timer
                                     }
                                 }
                             }
