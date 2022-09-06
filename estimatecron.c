@@ -255,7 +255,7 @@ struct Crontabs{
 
 int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
     int i = 0;
-    int j = 0;
+    int j;
     int crontabs_size = 0;
     char line[LINE_SIZE];
     // Reading crontab file line by line and putting contents into array of structures
@@ -267,6 +267,7 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
         char crontab_day[10];
         char crontab_command[COMMAND_SIZE + 1];
 
+        j = 0;
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
         }
@@ -301,68 +302,6 @@ int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_fil
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
         }
-
-    //Error Checker for each line in crontabs file
-    for (int j = 0; j < crontabs_size; ++j) {
-        //Check for correct minute domain
-        if (strcmp(crontabs[j].minute, always) != 0) {
-            if (atoi(crontabs[j].minute) < 0 || atoi(crontabs[j].minute) > 59) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
-                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
-                fprintf(stderr, "Minutes value %s is not in the required domain!!!\n", crontabs[j].minute);
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        //Check for correct hour domain
-        if (strcmp(crontabs[j].hour, always) != 0) {
-            if (atoi(crontabs[j].hour) < 0 || atoi(crontabs[j].hour) > 23) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
-                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
-                fprintf(stderr, "Hour value %s is not in the required domain!!!\n", crontabs[j].hour);
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        //Check for correct date domain
-        if (strcmp(crontabs[j].date, always) != 0) {
-            if (atoi(crontabs[j].date) < 1 || atoi(crontabs[j].date) > 31) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
-                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
-                fprintf(stderr, "Date value %s is not in the required domain!!!\n", crontabs[j].date);
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        //Check for correct month domain
-        if (strcmp(crontabs[j].month, always) != 0) {
-            if (atoi(crontabs[j].month) < 0 || atoi(crontabs[j].month) > 11) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
-                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
-                fprintf(stderr, "Month value %s is not in the required domain!!!\n", crontabs[j].month);
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        //Check for correct day domain
-        if (strcmp(crontabs[j].day, always) != 0) {
-            if (atoi(crontabs[j].day) < 0 || atoi(crontabs[j].day) > 59) {
-                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[j].minute,
-                       crontabs[j].hour, crontabs[j].date, crontabs[j].month, crontabs[j].day, crontabs[j].command);
-                fprintf(stderr, "Day value %s is not in the required domain!!!\n", crontabs[j].day);
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-
-    //Error Checker for each line in estimates file
-    //for (int k = 0; k < estimates_size; ++k) {
-        //Check for correct minute input
-       // printf("FINAL: %d\n", estimates[1].minutes);
-   // }
-
-
-
         if(line[j] != '#') {
             sscanf(line, "%s %i", estimate_name, &estimate_minutes);
             strcpy(estimates[i].command, estimate_name);
@@ -372,6 +311,95 @@ int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_fil
         }
     }
     return estimates_size;
+}
+
+bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int current_month, int i){
+
+    char *always = "*";
+    int current_day = (minute / MINUTES_IN_DAY + first_day(current_month)) % 7;
+    int current_date = (minute / MINUTES_IN_DAY) + 1;
+    int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
+    int current_minute = ((minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR);
+        if(strcmp(crontabs[i].month, always) != 0 || month_num(crontabs[i].month) != current_month) { // Test if the month is correct
+            return false;
+        }
+        if(strcmp(crontabs[i].day, always) != 0 || day_num(crontabs[i].day) != current_day) { // Test if the day is correct
+            return false;
+        }
+        if(strcmp(crontabs[i].date, always) != 0 || atoi(crontabs[i].date) != current_date) { // Test if the date is correct
+            return false;
+        }
+        if (strcmp(crontabs[i].hour, always) != 0 || atoi(crontabs[i].hour) != current_hour) { // Test if the hour is correct
+            return false;
+        }
+        if (strcmp(crontabs[i].minute, always) != 0 || atoi(crontabs[i].minute) != current_minute) { // Test if the minute is correct
+            return false;
+        }
+    return true;
+}
+
+void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
+        int crontabs_size, int estimates_size){
+    int i;
+    char *always = "*";
+    //Error Checker for each line in crontabs file
+    for(i = 0; i < crontabs_size; ++i) {
+        //Check for correct minute domain
+        if(strcmp(crontabs[i].minute, always) != 0) {
+            if(atoi(crontabs[i].minute) < 0 || atoi(crontabs[i].minute) > 59) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                fprintf(stderr, "Minutes value %s is not in the required domain!!!\n", crontabs[i].minute);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct hour domain
+        if(strcmp(crontabs[i].hour, always) != 0) {
+            if(atoi(crontabs[i].hour) < 0 || atoi(crontabs[i].hour) > 23) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                fprintf(stderr, "Hour value %s is not in the required domain!!!\n", crontabs[i].hour);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct date domain
+        if(strcmp(crontabs[i].date, always) != 0) {
+            if(atoi(crontabs[i].date) < 1 || atoi(crontabs[i].date) > 31) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                fprintf(stderr, "Date value %s is not in the required domain!!!\n", crontabs[i].date);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct month domain
+        if (strcmp(crontabs[i].month, always) != 0) {
+            if (atoi(crontabs[i].month) < 0 || atoi(crontabs[i].month) > 11) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                fprintf(stderr, "Month value %s is not in the required domain!!!\n", crontabs[i].month);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        //Check for correct day domain
+        if (strcmp(crontabs[i].day, always) != 0) {
+            if (atoi(crontabs[i].day) < 0 || atoi(crontabs[i].day) > 59) {
+                printf("Min: %s, Hour: %s, Date: %s, Month: %s, Day: %s, Command: %s\n", crontabs[i].minute,
+                       crontabs[i].hour, crontabs[i].date, crontabs[i].month, crontabs[i].day, crontabs[i].command);
+                fprintf(stderr, "Day value %s is not in the required domain!!!\n", crontabs[i].day);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    //Error Checker for each line in estimates file
+    //for (int k = 0; k < estimates_size; ++k) {
+    //Check for correct minute input
+    // printf("FINAL: %d\n", estimates[1].minutes);
+    // }
 }
 
 void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
@@ -410,13 +438,13 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     struct Estimates estimates[MAX_COMMANDS];
     estimates_size = read_estimates(estimates, estimates_file);
 
+    error_checker(estimates, crontabs, crontabs_size, estimates_size);
+
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
         counter[i].counter = 0; // Initialise all counters to 0
     }
     for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY) + 1; minute++){
-        int current_day = (minute / MINUTES_IN_DAY + first_day(month_int)) % 7;
-        int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
         for(i = 0; i < timer_size + 1; i++){
             if(timer[i].timer >= 0){
                 --timer[i].timer; // Decrement each timer
@@ -428,47 +456,39 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
         }
         timer_size = 0;
         for(i = 0; i < crontabs_size; i++){
-            if(strcmp(crontabs[i].month, always) == 0 || month_num(crontabs[i].month) == month_int){ // Test if the month is correct
-                if(strcmp(crontabs[i].day, always) == 0 || day_num(crontabs[i].day) == current_day){ // Test if the day is correct
-                    if(strcmp(crontabs[i].date, always) == 0 || atoi(crontabs[i].date) == (minute / MINUTES_IN_DAY) + 1) { // Test if the date is correct
-                        if (strcmp(crontabs[i].hour, always) == 0 || atoi(crontabs[i].hour) == current_hour) { // Test if the hour is correct
-                            if (strcmp(crontabs[i].minute, always) == 0 || atoi(crontabs[i].minute) == (minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR) { // Test if the minute is correct
-                                ++pid; // Increment total commands run
-                                ++nrunning; // Increment current running commands
-                                printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
-                                if(nrunning > max_nrunning){
-                                    max_nrunning = nrunning;
-                                }
-                                bool duplicate = false; // Duplicate flag
-                                for (j = 0; j < counter_size + 1; j++) {
-                                    if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
-                                        duplicate = true;
-                                    }
-                                }
-                                if (!duplicate) {
-                                    strcpy(counter[counter_size].command, crontabs[i].command); // Add command to counter if it's not a duplicate
-                                    ++counter[counter_size].counter;
-                                    ++counter_size;
-                                } else {
-                                    for (j = 0; j < counter_size + 1; j++) {
-                                        if (strcmp(counter[j].command, crontabs[i].command) == 0) {
-                                            ++counter[j].counter; // Increment the command counter if it is a duplicate
-                                        }
-                                    }
-                                }
-                                j = 0;
-                                while(timer[j].timer != -1){ // Find first free timer array
-                                    ++j;
-                                    ++timer_size;
-                                }
-                                strcpy(timer[j].command, crontabs[i].command); // If it is then store the command in array position
-                                for (int m = 0; m < estimates_size; m++) {
-                                    if(strcmp(estimates[m].command, timer[j].command) == 0) {
-                                        timer[j].timer = estimates[m].minutes; // Store commands estimated minute in timer
-                                    }
-                                }
-                            }
+            if(is_current_time(crontabs, minute, month_int, i)){
+                ++pid; // Increment total commands run
+                ++nrunning; // Increment current running commands
+                printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
+                if(nrunning > max_nrunning){
+                    max_nrunning = nrunning;
+                }
+                bool duplicate = false; // Duplicate flag
+                for (j = 0; j < counter_size + 1; j++) {
+                    if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
+                        duplicate = true;
+                    }
+                }
+                if (!duplicate) {
+                    strcpy(counter[counter_size].command, crontabs[i].command); // Add command to counter if it's not a duplicate
+                    ++counter[counter_size].counter;
+                    ++counter_size;
+                } else {
+                    for (j = 0; j < counter_size + 1; j++) {
+                        if (strcmp(counter[j].command, crontabs[i].command) == 0) {
+                            ++counter[j].counter; // Increment the command counter if it is a duplicate
                         }
+                    }
+                }
+                j = 0;
+                while(timer[j].timer != -1){ // Find first free timer array
+                    ++j;
+                    ++timer_size;
+                }
+                strcpy(timer[j].command, crontabs[i].command); // If it is then store the command in array position
+                for (int m = 0; m < estimates_size; m++) {
+                    if(strcmp(estimates[m].command, timer[j].command) == 0) {
+                        timer[j].timer = estimates[m].minutes; // Store commands estimated minute in timer
                     }
                 }
             }
