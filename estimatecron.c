@@ -320,22 +320,32 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
     int current_date = (minute / MINUTES_IN_DAY) + 1;
     int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
     int current_minute = ((minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR);
-        if(strcmp(crontabs[i].month, always) != 0 || month_num(crontabs[i].month) != current_month) { // Test if the month is correct
-            return false;
-        }
-        if(strcmp(crontabs[i].day, always) != 0 || day_num(crontabs[i].day) != current_day) { // Test if the day is correct
-            return false;
-        }
-        if(strcmp(crontabs[i].date, always) != 0 || atoi(crontabs[i].date) != current_date) { // Test if the date is correct
-            return false;
-        }
-        if (strcmp(crontabs[i].hour, always) != 0 || atoi(crontabs[i].hour) != current_hour) { // Test if the hour is correct
-            return false;
-        }
-        if (strcmp(crontabs[i].minute, always) != 0 || atoi(crontabs[i].minute) != current_minute) { // Test if the minute is correct
-            return false;
-        }
-    return true;
+    bool monthflag = false;
+    bool dayflag = false;
+    bool dateflag = false;
+    bool hourflag = false;
+    bool minuteflag = false;
+
+    if(strcmp(crontabs[i].month, always) == 0 || month_num(crontabs[i].month) == current_month) { // Test if the month is correct
+        monthflag = true;
+    }
+    if(strcmp(crontabs[i].day, always) == 0 || day_num(crontabs[i].day) == current_day) { // Test if the day is correct
+        dayflag = true;
+    }
+    if(strcmp(crontabs[i].date, always) == 0 || atoi(crontabs[i].date) == current_date) { // Test if the date is correct
+        dateflag = true;
+    }
+    if(strcmp(crontabs[i].hour, always) == 0 || atoi(crontabs[i].hour) == current_hour) { // Test if the hour is correct
+        hourflag = true;
+    }
+    if(strcmp(crontabs[i].minute, always) == 0 || atoi(crontabs[i].minute) == current_minute) { // Test if the minute is correct
+        minuteflag = true;
+    }
+    if(monthflag && dayflag && dateflag && hourflag && minuteflag){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
