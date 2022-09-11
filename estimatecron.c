@@ -523,6 +523,8 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     printf("The command which ran the most times was %s\n", max_counter_name);
     printf("The total amount of commands run was %i\n", pid);
     printf("The total number of commands running at a single time was %i\n", max_nrunning);
+    printf("\n\n\n%s       %i       %i", max_counter_name, pid, max_nrunning);
+
 }
 
 int main(int argc, char *argv[]){
@@ -537,7 +539,5 @@ int main(int argc, char *argv[]){
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
-
-
     return 0;
 }
