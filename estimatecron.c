@@ -86,7 +86,7 @@
 #define MINUTES_IN_DAY 1440
 #define MINUTES_IN_HOUR 60
 #define HOURS_IN_DAY 24
-#define REGARDLESS "*" // An '*' has the representation of always happening regardless of that input
+#define REGARDLESS "*" // A '*' has the representation of always happening regardless of that input
 
 FILE *file_opener(char filename[]) {
     /* Returns the opened file pointer */
@@ -349,6 +349,7 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
         int crontabs_size, int estimates_size){
 
     int i;
+
     //Error Checker for each line in crontabs file
     for(i = 0; i < crontabs_size; ++i) {
         //Check for correct minute domain
@@ -400,14 +401,21 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
                 exit(EXIT_FAILURE);
             }
         }
+
+        //Check if command from crontabs is in estimates file
+        for (int k = 0; k < estimates_size; ++k) {
+            // Compare each command from crontabs with estimates
+            if (strcmp(crontabs[i].command, estimates[k].command) == 0) {
+                break;
+            }
+            if (strcmp(crontabs[i].command, estimates[k].command) != 0 && k == estimates_size - 1) {
+                fprintf(stderr, "Command %s is not in both files!!!\n", crontabs[i].command);
+                exit(EXIT_FAILURE);
+            }
+            }
+        }
     }
 
-    //Error Checker for each line in estimates file
-    //for (int k = 0; k < estimates_size; ++k) {
-    //Check for correct minute input
-    // printf("FINAL: %d\n", estimates[1].minutes);
-    // }
-}
 
 void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     /* Calculates and prints:
@@ -526,7 +534,6 @@ int main(int argc, char *argv[]){
     char *month = argv[1];
     FILE *crontab_file = file_opener(argv[2]);
     FILE *estimates_file = file_opener(argv[3]);
-
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
