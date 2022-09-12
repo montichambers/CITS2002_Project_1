@@ -36,14 +36,14 @@ struct Crontabs{
 FILE *file_opener(char filename[]) {
     /* Returns the opened file pointer */
 
-    FILE *name = fopen(filename, "r");
+    FILE *fp = fopen(filename, "r");
 
-    if(name == NULL) {
+    if(fp == NULL) {
         fprintf(stderr, "cannot open file '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    return name;
+    return fp;
 }
 
 int month_num(char *month){
@@ -346,7 +346,7 @@ int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_fil
 }
 
 bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int current_month, int i){
-
+    /* Returns a boolean true if the minute matches that of the crontab at index i */
     int current_day = (minute / MINUTES_IN_DAY + first_day(current_month)) % DAYS_IN_WEEK;
     int current_date = (minute / MINUTES_IN_DAY) + 1;
     int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
@@ -503,7 +503,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
 }
 
 int main(int argc, char *argv[]){
-
     if(argc != 4){
         fprintf(stderr, "%s expected 3 arguments, instead got %i\n", argv[0], argc - 1);
     }
