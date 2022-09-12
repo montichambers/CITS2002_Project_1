@@ -2,16 +2,7 @@
 // CITS2002 Project 1 2022
 // Student1: 23057892 Chambers Monti
 // Student2: 23058262 Nguyen Nathan
-
-/*
- potential errors:
-
- too few arguments
- minute, hour, day etc, having too many characters
- estimate <= 0
- leaving a line blank
- no matching estimate from crontab
- */
+//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +16,22 @@
 #define MINUTES_IN_DAY 1440
 #define MINUTES_IN_HOUR 60
 #define HOURS_IN_DAY 24
-#define REGARDLESS "*" // An '*' means that the time is regardless of that value
+#define MONTHS_IN_YEAR 12
+#define DAYS_IN_WEEK 7
+
+struct Estimates{
+    char command[COMMAND_SIZE + 1];
+    int minutes;
+};
+
+struct Crontabs{
+    int minute;
+    int hour;
+    int date;
+    int month;
+    int day;
+    char command[COMMAND_SIZE + 1];
+};
 
 FILE *file_opener(char filename[]) {
     /* Returns the opened file pointer */
@@ -68,7 +74,7 @@ int day_num(char *day){
     }
 
     const char *days[7] = {"sun", "mon", "tue", "wed",
-                             "thu", "fri", "sat"};
+                           "thu", "fri", "sat"};
 
     for(int i = 0; i < 7; i++){
         if(strcmp(days[i], day) == 0){ // Compares whether given day is a valid day (or substring)
@@ -175,26 +181,11 @@ int first_day(int month){
     return first_day;
 }
 
-struct Estimates{
-    char command[COMMAND_SIZE + 1];
-    int minutes;
-};
-
-struct Crontabs{
-    int minute;
-    int hour;
-    int date;
-    int month;
-    int day;
-    char command[COMMAND_SIZE + 1];
-};
-
-int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
+int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, int given_month){
     /* Assigns each crontab entry into an array of structures and
      * returns the number of entries in the array */
     int i = 0;
     int j;
-    int crontabs_size = 0;
     int line_words;
     char line[LINE_SIZE];
     // Reading crontab file line by line and putting contents into array of structures
@@ -211,28 +202,97 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
         char command[LINE_SIZE];
 
         if(line[j] != '#') {
-            line_words = sscanf(line, "%s %s %s %s %s %s", minute,
-                                hour, date, month, day, command);
+            line_words = sscanf(line, "%s %s %s %s %s %s",
+                                minute, hour, date, month, day, command);
             if(line_words >= 6){
-                if(isnumber(*minute)){
-                    crontabs[i].minute = atoi(minute);
-                }
-                else if(strcmp(minute, "*") == 0){
+                if(strcmp(minute, "*") == 0) {
                     crontabs[i].minute = -1;
                 }
+                else if(isnumber(*minute)){
+                    int minute_int = atoi(minute);
+                    if(minute_int >= 0 && minute_int < MINUTES_IN_HOUR){
+                        crontabs[i].minute = minute_int;
+                    }
+                    else{
+                        fprintf(stderr, "%s is not a valid minute in line %i\n", minute, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                if(strcmp(hour, "*") == 0) {
+                    crontabs[i].hour = -1;
+                }
+                else if(isnumber(*hour)){
+                    int hour_int = atoi(hour);
+                    if(hour_int >= 0 && hour_int < HOURS_IN_DAY){
+                        crontabs[i].hour = hour_int;
+                    }
+                    else{
+                        fprintf(stderr, "%s is not a valid hour in line %i\n", hour, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 else{
-                    fprintf(stderr, "%s is not a valid minute in line %i", minute, j);
+                    fprintf(stderr, "%s is not a valid hour in line %i\n", hour, j);
                     exit(EXIT_FAILURE);
                 }
-                crontabs_size++;
+                if(strcmp(date, "*") == 0) {
+                    crontabs[i].date = -1;
+                }
+                else if(isnumber(*date)){
+                    int date_int = atoi(date);
+                    if(date_int > 0 && date_int <= days_in_month(given_month)){
+                        crontabs[i].date = date_int;
+                    }
+                    else{
+                        fprintf(stderr, "%s is not a valid date in line %i\n", date, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else{
+                    fprintf(stderr, "%s is not a valid date in line %i\n", date, j);
+                    exit(EXIT_FAILURE);
+                }
+                if(strcmp(month, "*") == 0) {
+                    crontabs[i].month = -1;
+                }
+                else{
+                    int month_int = month_num(month);
+                    if(month_int >= 0 && month_int < MONTHS_IN_YEAR){
+                        crontabs[i].month = month_int;
+                    }
+                    else{
+                        fprintf(stderr, "%i is not a valid month in line %i\n", month_int, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                if(strcmp(day, "*") == 0) {
+                    crontabs[i].day = -1;
+                }
+                else{
+                    int day_int = day_num(day);
+                    if(day_int >= 0 && day_int < DAYS_IN_WEEK){
+                        crontabs[i].day = day_int;
+                    }
+                    else{
+                        fprintf(stderr, "%i is not a valid day in line %i\n", day_int, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                if(strlen(command) <= COMMAND_SIZE + 1) {
+                    strcpy(crontabs[i].command, command);
+                }
+                else{
+                    fprintf(stderr, "%s is not a valid command in line %i\n", command, j);
+                    exit(EXIT_FAILURE);
+                }
                 i++;
             } else{
-                fprintf(stderr, "Invalid number of words in line %i", j);
+                fprintf(stderr, "Invalid number of words in line %i\n", j);
                 exit(EXIT_FAILURE);
             }
         }
     }
-    return crontabs_size;
+    return i;
 }
 
 int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_file){
@@ -240,27 +300,54 @@ int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_fil
      * returns the number of entries in the array */
     int i = 0;
     int j;
-    int estimates_size = 0;
     char line[LINE_SIZE];
+    int line_words;
     // Reading estimates file line by line and putting contents into array of structures
     while(fgets(line, sizeof line, estimates_file) != NULL){
-
         j = 0;
+        char command[LINE_SIZE];
+        char minutes[LINE_SIZE];
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
         }
         if(line[j] != '#') {
-            sscanf(line, "%s %i", estimates[i].command, &estimates[i].minutes);
-            estimates_size++;
-            i++;
+            line_words = sscanf(line, "%s %s", command, minutes);
+            if(line_words >= 2){
+                if(strlen(command) <= COMMAND_SIZE + 1) {
+                    strcpy(estimates[i].command, command);
+                }
+                else{
+                    fprintf(stderr, "%s is not a valid command in line %i\n", command, j);
+                    exit(EXIT_FAILURE);
+                }
+                if(isnumber(*minutes)){
+                    int minutes_int = atoi(minutes);
+                    if(minutes_int > 0){
+                        estimates[i].minutes = minutes_int;
+                    }
+                    else{
+                        fprintf(stderr, "%i is not a valid minutes in line %i\n", minutes_int, j);
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else{
+                    fprintf(stderr, "%s is not a valid minutes in line %i\n", minutes, j);
+                    exit(EXIT_FAILURE);
+                }
+                i++;
+            }
+            else{
+                fprintf(stderr, "Invalid number of words in line %i\n", j);
+                exit(EXIT_FAILURE);
+            }
         }
     }
-    return estimates_size;
+    return i;
 }
 
 bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int current_month, int i){
 
-    int current_day = (minute / MINUTES_IN_DAY + first_day(current_month)) % 7;
+    int current_day = (minute / MINUTES_IN_DAY + first_day(current_month)) % DAYS_IN_WEEK;
     int current_date = (minute / MINUTES_IN_DAY) + 1;
     int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
     int current_minute = ((minute % MINUTES_IN_DAY) % MINUTES_IN_HOUR);
@@ -270,19 +357,19 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
     bool hourflag = false;
     bool minuteflag = false;
 
-    if(strcmp(crontabs[i].month, REGARDLESS) == 0 || month_num(crontabs[i].month) == current_month) { // Test if the month is correct
+    if(crontabs[i].month == -1 || crontabs[i].month == current_month) { // Test if the month is correct
         monthflag = true;
     }
-    if(strcmp(crontabs[i].day, REGARDLESS) == 0 || day_num(crontabs[i].day) == current_day) { // Test if the day is correct
+    if(crontabs[i].day == -1 || crontabs[i].day == current_day) { // Test if the day is correct
         dayflag = true;
     }
-    if(strcmp(crontabs[i].date, REGARDLESS) == 0 || atoi(crontabs[i].date) == current_date) { // Test if the date is correct
+    if(crontabs[i].date == -1 || crontabs[i].date == current_date) { // Test if the date is correct
         dateflag = true;
     }
-    if(strcmp(crontabs[i].hour, REGARDLESS) == 0 || atoi(crontabs[i].hour) == current_hour) { // Test if the hour is correct
+    if(crontabs[i].hour == -1 || crontabs[i].hour == current_hour) { // Test if the hour is correct
         hourflag = true;
     }
-    if(strcmp(crontabs[i].minute, REGARDLESS) == 0 || atoi(crontabs[i].minute) == current_minute) { // Test if the minute is correct
+    if(crontabs[i].minute == -1 || crontabs[i].minute == current_minute) { // Test if the minute is correct
         minuteflag = true;
     }
     if(monthflag && dayflag && dateflag && hourflag && minuteflag){
@@ -293,7 +380,7 @@ bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int cur
 }
 
 void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs crontabs[MAX_COMMANDS],
-        int crontabs_size, int estimates_size){
+                   int crontabs_size, int estimates_size){
 
     int i;
     //Error Checker for each line in crontabs file
@@ -352,7 +439,7 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
     //Error Checker for each line in estimates file
     for(i = 0; i < estimates_size; ++i){
 
-    //Check for correct minute input
+        //Check for correct minute input
         if(estimates[i].minutes <= 0){
             fprintf(stderr, "Minutes %i is not a valid minute\n", estimates[i].minutes);
             exit(EXIT_FAILURE);
@@ -391,12 +478,10 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     }timer[MAX_COMMANDS]; // Array of structures for assigning timers of when a command will terminate
 
     struct Crontabs crontabs[MAX_COMMANDS];
-    crontabs_size = read_crontabs(crontabs, crontab_file); // Writes crontabs to array of structures and assigns the size
+    crontabs_size = read_crontabs(crontabs, crontab_file, month_int); // Writes crontabs to array of structures and assigns the size
 
     struct Estimates estimates[MAX_COMMANDS];
     estimates_size = read_estimates(estimates, estimates_file); // Writes estimates to array of structures and assigns the size
-
-    error_checker(estimates, crontabs, crontabs_size, estimates_size); // Check for errors
 
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
