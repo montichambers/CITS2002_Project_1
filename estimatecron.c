@@ -383,6 +383,7 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
                    int crontabs_size, int estimates_size){
 
     int i;
+
     //Error Checker for each line in crontabs file
     for(i = 0; i < crontabs_size; ++i) {
         //Check for correct minute domain
@@ -447,6 +448,21 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
     }
 
 }
+
+        //Check if command from crontabs is in estimates file
+        for (int k = 0; k < estimates_size; ++k) {
+            // Compare each command from crontabs with estimates
+            if (strcmp(crontabs[i].command, estimates[k].command) == 0) {
+                break;
+            }
+            if (strcmp(crontabs[i].command, estimates[k].command) != 0 && k == estimates_size - 1) {
+                fprintf(stderr, "Command %s is not in both files!!!\n", crontabs[i].command);
+                exit(EXIT_FAILURE);
+            }
+            }
+        }
+    }
+
 
 void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     /* Calculates and prints:
@@ -552,6 +568,8 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     printf("The command which ran the most times was %s\n", max_counter_name);
     printf("The total amount of commands run was %i\n", pid);
     printf("The total number of commands running at a single time was %i\n", max_nrunning);
+    printf("\n\n\n%s       %i       %i", max_counter_name, pid, max_nrunning);
+
 }
 
 int main(int argc, char *argv[]){
@@ -564,10 +582,7 @@ int main(int argc, char *argv[]){
     FILE *crontab_file = file_opener(argv[2]);
     FILE *estimates_file = file_opener(argv[3]);
 
-
     // Running program
     estimatecron(month, crontab_file, estimates_file);
-
-
     return 0;
 }
