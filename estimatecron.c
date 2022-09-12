@@ -4,80 +4,19 @@
 // Student2: 23058262 Nguyen Nathan
 
 /*
- crontab-file:
- minute (int 0-59)
- hour (int 0-24)
- date (int 0-31 depending)
- month (int 0-12)
- day (string mon or monday works)
- command (string)
-
- estimates-file:
- command (string)
- minutes (int)
-
- outputs:
- The name of the most frequently executed command (string)
- The total number of commands invoked (unsigned int)
- The maximum number of commands running at any time (unsigned int)
-
- Open and read files crontab-file and estimates file
-
- if line begins with #, skip
-
- given the month, determine:
- which commands run in that month
- count of how many times each command runs
- count of the total number of commands run
-
- From estimates file list how long each command runs for
-
- list the amount of commands running at any time
-
  potential errors:
- file doesn't exist
- too many arguments
- minute, hour, date, month, day out of range
- no name
- ints instead of strings vice versa
 
-
- Plan of attack:
-    Turn files into array of structures
-    Iterate through every minute of given month:
-        record whether a program terminates in that minute
-        if a program starts in that minute, record it
-        use to count how many programs run and are running at 1 time
-
-
-
-
-
- PLAN:
-    Iterate through each minute
-    Iterate through each crontab array
-    Determine if a command executes or terminates in that minute (terminate first)
-    If a command executes:
-        +1 total programs run, +1 current programs running, +1 specific command run, start (timer?) based on minutes from estimates
-    If a command terminates:
-        -1 current programs running
-
-    Find potential errors
-
-    Test each minute and see how many programs are running
-    Use a counter to count  frequency of each program
-    Find the name of the most frequently executed command (a single word),
-    The total number of commands invoked (a non-negative integer),
-    The maximum number of commands running at any time (a non-negative integer).
-
+ too few arguments
+ minute, hour, day etc, having too many characters
+ estimate <= 0
+ leaving a line blank
+ no matching estimate from crontab
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <ctype.h>
 
 #define LINE_SIZE 100
@@ -86,7 +25,7 @@
 #define MINUTES_IN_DAY 1440
 #define MINUTES_IN_HOUR 60
 #define HOURS_IN_DAY 24
-#define REGARDLESS "*" // An '*' has the representation of always happening regardless of that input
+#define REGARDLESS "*" // An '*' means that the time is regardless of that value
 
 FILE *file_opener(char filename[]) {
     /* Returns the opened file pointer */
@@ -107,14 +46,13 @@ int month_num(char *month){
     if(isnumber(*month)){ // Return the month integer if it is already one
         return atoi(month);
     }
-
-    const char *months[12] = {"january", "february", "march",
-                              "april", "may", "june",
-                              "july", "august", "september",
-                              "october", "november", "december"};
+    const char *months[12] = {"jan", "feb", "mar",
+                              "apr", "may", "jun",
+                              "jul", "aug", "sep",
+                              "oct", "nov", "dec"};
 
     for(int i = 0; i < 12; i++){
-        if(strstr(months[i], month) != NULL){ // Determines whether a given month is a valid month (or substring)
+        if(strcmp(months[i], month) == 0){ // Determines whether a given month is a valid month
             return i;
         }
     }
@@ -125,15 +63,15 @@ int month_num(char *month){
 int day_num(char *day){
     /* Returns the integer of a day given as a string */
 
-    int day_num;
     if(isnumber(*day)){ // Return the day integer if it is already one
         return atoi(day);
     }
-    const char *days[7] = {"sunday", "monday", "tuesday", "wednesday",
-                             "thursday", "friday", "saturday"};
+
+    const char *days[7] = {"sun", "mon", "tue", "wed",
+                             "thu", "fri", "sat"};
 
     for(int i = 0; i < 7; i++){
-        if(strstr(days[i], day) != NULL){ // Compares whether given day is a valid day (or substring)
+        if(strcmp(days[i], day) == 0){ // Compares whether given day is a valid day (or substring)
             return i;
         }
     }
@@ -243,67 +181,76 @@ struct Estimates{
 };
 
 struct Crontabs{
-    char minute[3];
-    char hour[3];
-    char date[3];
-    char month[3];
-    char day[10];
+    int minute;
+    int hour;
+    int date;
+    int month;
+    int day;
     char command[COMMAND_SIZE + 1];
 };
 
 int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file){
+    /* Assigns each crontab entry into an array of structures and
+     * returns the number of entries in the array */
     int i = 0;
     int j;
     int crontabs_size = 0;
+    int line_words;
     char line[LINE_SIZE];
     // Reading crontab file line by line and putting contents into array of structures
     while(fgets(line, sizeof line, crontab_file) != NULL){
-        char crontab_minute[3];
-        char crontab_hour[3];
-        char crontab_date[3];
-        char crontab_month[3];
-        char crontab_day[10];
-        char crontab_command[COMMAND_SIZE + 1];
-
         j = 0;
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
         }
+        char minute[LINE_SIZE];
+        char hour[LINE_SIZE];
+        char date[LINE_SIZE];
+        char month[LINE_SIZE];
+        char day[LINE_SIZE];
+        char command[LINE_SIZE];
 
         if(line[j] != '#') {
-            sscanf(line, "%s %s %s %s %s %s", crontab_minute, crontab_hour,
-                   crontab_date,crontab_month, crontab_day, crontab_command);
-            strcpy(crontabs[i].minute, crontab_minute);
-            strcpy(crontabs[i].hour, crontab_hour);
-            strcpy(crontabs[i].date, crontab_date);
-            strcpy(crontabs[i].month, crontab_month);
-            strcpy(crontabs[i].day, crontab_day);
-            strcpy(crontabs[i].command, crontab_command);
-            crontabs_size++;
-            i++;
+            line_words = sscanf(line, "%s %s %s %s %s %s", minute,
+                                hour, date, month, day, command);
+            if(line_words >= 6){
+                if(isnumber(*minute)){
+                    crontabs[i].minute = atoi(minute);
+                }
+                else if(strcmp(minute, "*") == 0){
+                    crontabs[i].minute = -1;
+                }
+                else{
+                    fprintf(stderr, "%s is not a valid minute in line %i", minute, j);
+                    exit(EXIT_FAILURE);
+                }
+                crontabs_size++;
+                i++;
+            } else{
+                fprintf(stderr, "Invalid number of words in line %i", j);
+                exit(EXIT_FAILURE);
+            }
         }
     }
     return crontabs_size;
 }
 
 int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_file){
+    /* Assigns each estimates entry into an array of structures and
+     * returns the number of entries in the array */
     int i = 0;
     int j;
     int estimates_size = 0;
     char line[LINE_SIZE];
     // Reading estimates file line by line and putting contents into array of structures
     while(fgets(line, sizeof line, estimates_file) != NULL){
-        char estimate_name[COMMAND_SIZE + 1];
-        int estimate_minutes = 0;
 
         j = 0;
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
         }
         if(line[j] != '#') {
-            sscanf(line, "%s %i", estimate_name, &estimate_minutes);
-            strcpy(estimates[i].command, estimate_name);
-            estimates[i].minutes = estimate_minutes;
+            sscanf(line, "%s %i", estimates[i].command, &estimates[i].minutes);
             estimates_size++;
             i++;
         }
@@ -403,10 +350,15 @@ void error_checker(struct Estimates estimates[MAX_COMMANDS], struct Crontabs cro
     }
 
     //Error Checker for each line in estimates file
-    //for (int k = 0; k < estimates_size; ++k) {
+    for(i = 0; i < estimates_size; ++i){
+
     //Check for correct minute input
-    // printf("FINAL: %d\n", estimates[1].minutes);
-    // }
+        if(estimates[i].minutes <= 0){
+            fprintf(stderr, "Minutes %i is not a valid minute\n", estimates[i].minutes);
+            exit(EXIT_FAILURE);
+        }
+    }
+
 }
 
 void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
