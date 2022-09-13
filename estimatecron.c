@@ -498,7 +498,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             }
         }
     }
-
     // Find name of command which ran the most times
     for(i = 0; i < estimates_size; i++){
         if(estimates[i].counter > max_counter){
