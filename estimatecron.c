@@ -507,7 +507,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                         ++j;
                     }
                     strcpy(timer[j].command, crontabs[i].command); // Store the command in free index of array
-                    for (int m = 0; m < estimates_size; m++) {
+                    for(int m = 0; m < estimates_size; m++) {
                         if (strcmp(estimates[m].command, timer[j].command) == 0) { // Find the matching command in estimates
                             timer[j].timer = estimates[m].minutes; // Store the commands estimated minutes as timer
                         }
