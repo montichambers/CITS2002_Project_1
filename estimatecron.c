@@ -22,6 +22,7 @@
 struct Estimates{
     char command[COMMAND_SIZE + 1];
     int minutes;
+    int counter;
 };
 
 struct Crontabs{
@@ -428,11 +429,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
 
     struct{
         char command[COMMAND_SIZE + 1];
-        int counter;
-    }counter[MAX_COMMANDS]; // Array of structures for counting times each command is run
-
-    struct{
-        char command[COMMAND_SIZE + 1];
         int timer;
     }timer[MAX_COMMANDS]; // Array of structures for assigning timers of when a command will terminate
 
@@ -458,7 +454,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
 
     for(i = 0; i < MAX_COMMANDS; i++){
         timer[i].timer = -1; // Initialise all timers to -1
-        counter[i].counter = 0; // Initialise all counters to 0
+        estimates[i].counter = 0; // Initialise all counters to 0
     }
 
     // Iterate through every minute of the given month
@@ -483,22 +479,9 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                     if (nrunning > max_nrunning) {
                         max_nrunning = nrunning;
                     }
-                    bool duplicate = false; // Duplicate flag
-                    for (j = 0; j < counter_size + 1; j++) {
-                        if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
-                            duplicate = true;
-                        }
-                    }
-                    if (!duplicate) {
-                        strcpy(counter[counter_size].command,
-                               crontabs[i].command); // Add command to counter if it's not a duplicate
-                        ++counter[counter_size].counter;
-                        ++counter_size;
-                    } else {
-                        for (j = 0; j < counter_size + 1; j++) {
-                            if (strcmp(counter[j].command, crontabs[i].command) == 0) {
-                                ++counter[j].counter; // Increment the commands counter if it is a duplicate
-                            }
+                    for (j = 0; j < estimates_size + 1; j++) {
+                        if(strcmp(estimates[j].command, crontabs[i].command) == 0) {
+                            ++estimates[j].counter; // Increment the commands counter
                         }
                     }
                     j = 0;
@@ -517,10 +500,10 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     }
 
     // Find name of command which ran the most times
-    for(i = 0; i < counter_size; i++){
-        if(counter[i].counter > max_counter){
-            max_counter = counter[i].counter;
-            strcpy(max_counter_name, counter[i].command);
+    for(i = 0; i < estimates_size; i++){
+        if(estimates[i].counter > max_counter){
+            max_counter = estimates[i].counter;
+            strcpy(max_counter_name, estimates[i].command);
         }
     }
     printf("The command which ran the most times was %s\n", max_counter_name);
