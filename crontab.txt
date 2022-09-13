@@ -1,5 +1,6 @@
 # execute a command at 3AM every day
-0 3 * * *      daily-backup
+* * * * tue weekly-backup
+0 3 * * thu weekly-backup
 #
 # execute a command at 4:15AM every Sunday
 15 4 * * sun   weekly-backup
