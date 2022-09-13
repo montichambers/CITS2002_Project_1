@@ -1,6 +1,6 @@
      # format:  command-name   minutes
-weekly-backup             2
-daily-backup              2
-send-monthly-newsletter   10
-submit-project            1
-deep-thought              600
+weekly-backup             5
+daily-backup              5
+send-monthly-newsletter   5
+submit-project            5
+deep-thought              5
