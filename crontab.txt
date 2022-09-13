@@ -2,13 +2,13 @@
 * * * * *      daily-backup
 #
 # execute a command at 4:15AM every Sunday
-* * * * *    weekly-backup
+* * * * *   weekly-backup
 #
 # start thinking about the project....
-* * * * *   deep-thought
+* * * * *  deep-thought
 #
 # submit my project automatically, just in case I forget!
-* * * * *  submit-project
+* * * * *   submit-project
 #
 # mail out a monthly newsletter
-* * * * *    send-monthly-newsletter
+* * * * *      send-monthly-newsletter

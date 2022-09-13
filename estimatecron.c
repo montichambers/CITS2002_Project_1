@@ -419,7 +419,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     int nrunning = 0; // Number of current commands running at a particular time
     int max_nrunning = 0; // Highest value nrunning reaches
     int max_counter = 0; // Highest value that a single command runs
-    char max_counter_name[COMMAND_SIZE]; // Name of command associated with max_counter
+    char max_counter_name[COMMAND_SIZE + 1]; // Name of command associated with max_counter
     int crontabs_size; // Size of crontabs array
     int estimates_size; // Size of estimates array
     int counter_size = 0; // Size of counter array
@@ -462,19 +462,20 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     }
 
     // Iterate through every minute of the given month
-    for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY) ; minute++){
+    for(int minute = 0; minute < (days_in_month(month_int) * MINUTES_IN_DAY); minute++){
         for(i = 0; i < MAX_COMMANDS; i++){
-            if(timer[i].timer >= 0){
+            if(timer[i].timer > 0){
                 --timer[i].timer; // Decrement each timer every minute
             }
             if(timer[i].timer == 0){
                 --nrunning; // Decrement number of command running if its timer finishes
+                --timer[i].timer;
                 printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
             }
         }
         for(i = 0; i < crontabs_size; i++){
             if(is_current_time(crontabs, minute, month_int, i)){ // Test if the current time matches any in crontabs
-                if(nrunning < 20) {
+                if(nrunning < 20){
                     ++pid; // Increment total commands run
                     ++nrunning; // Increment current running commands
                     printf("%s invoked at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid,
@@ -484,8 +485,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                     }
                     bool duplicate = false; // Duplicate flag
                     for (j = 0; j < counter_size + 1; j++) {
-                        if (strcmp(counter[j].command, crontabs[i].command) ==
-                            0) { // Test if command is already in counter array
+                        if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
                             duplicate = true;
                         }
                     }
@@ -502,12 +502,11 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                         }
                     }
                     j = 0;
-
-                    while (timer[j].timer != -1) { // Find first free timer array
+                    while(timer[j].timer != -1) { // Find first free timer array
                         ++j;
                     }
                     strcpy(timer[j].command, crontabs[i].command); // Store the command in free index of array
-                    for (int m = 0; m < estimates_size; m++) {
+                    for(int m = 0; m < estimates_size; m++) {
                         if (strcmp(estimates[m].command, timer[j].command) == 0) { // Find the matching command in estimates
                             timer[j].timer = estimates[m].minutes; // Store the commands estimated minutes as timer
                         }
