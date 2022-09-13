@@ -504,7 +504,6 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                     j = 0;
 
                     while (timer[j].timer != -1) { // Find first free timer array
-                        printf("Time Structure: %s\n", timer[j].timer
                         ++j;
                     }
                     strcpy(timer[j].command, crontabs[i].command); // Store the command in free index of array
