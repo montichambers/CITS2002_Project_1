@@ -466,7 +466,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
             if(timer[i].timer == 0){
                 --nrunning; // Decrement number of command running if its timer finishes
                 --timer[i].timer;
-                printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", crontabs[i].command, minute, pid, nrunning);
+                printf("%s terminated at minute %i, pid = %i, nrunning = %i\n", timer[i].command, minute, pid, nrunning);
             }
         }
         for(i = 0; i < crontabs_size; i++){
