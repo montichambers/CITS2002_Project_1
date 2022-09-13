@@ -347,6 +347,7 @@ int read_estimates(struct Estimates estimates[MAX_COMMANDS], FILE *estimates_fil
 
 bool is_current_time(struct Crontabs crontabs[MAX_COMMANDS], int minute, int current_month, int i){
     /* Returns a boolean true if the minute matches that of the crontab at index i */
+
     int current_day = (minute / MINUTES_IN_DAY + first_day(current_month)) % DAYS_IN_WEEK;
     int current_date = (minute / MINUTES_IN_DAY) + 1;
     int current_hour = ((minute / MINUTES_IN_HOUR) % HOURS_IN_DAY);
@@ -475,7 +476,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                     ++timer_size;
                 }
                 strcpy(timer[j].command, crontabs[i].command); // If it is then store the command in array position
-                for (int m = 0; m < estimates_size; m++) {
+                for(int m = 0; m < estimates_size; m++) {
                     if(strcmp(estimates[m].command, timer[j].command) == 0) {
                         timer[j].timer = estimates[m].minutes; // Store commands estimated minute in timer
                     }
@@ -488,21 +489,18 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
     for(i = 0; i < counter_size; i++){
         if(counter[i].counter > max_counter){
             max_counter = counter[i].counter;
-        }
-    }
-    for(i = 0; i < counter_size; i++){
-        if(counter[i].counter == max_counter){
             strcpy(max_counter_name, counter[i].command);
         }
     }
     printf("The command which ran the most times was %s\n", max_counter_name);
     printf("The total amount of commands run was %i\n", pid);
     printf("The total number of commands running at a single time was %i\n", max_nrunning);
-    printf("\n\n\n%s       %i       %i\n", max_counter_name, pid, max_nrunning);
-
+    printf("\n%s       %i       %i\n", max_counter_name, pid, max_nrunning);
 }
 
 int main(int argc, char *argv[]){
+
+    // Check if the correct number of arguments are given
     if(argc != 4){
         fprintf(stderr, "%s expected 3 arguments, instead got %i\n", argv[0], argc - 1);
     }
@@ -513,5 +511,7 @@ int main(int argc, char *argv[]){
 
     // Running program
     estimatecron(month, crontab_file, estimates_file);
+
+    exit(EXIT_SUCCESS);
     return 0;
 }
