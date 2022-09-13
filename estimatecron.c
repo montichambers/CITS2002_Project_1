@@ -188,11 +188,13 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
 
     int i = 0;
     int j;
-    int line_words;
+    int line_int = 0; // Line in file
+    int line_words; // Words in line of file
     char line[LINE_SIZE];
 
     // Reading crontab file line by line and putting contents into array of structures
     while(fgets(line, sizeof line, crontab_file) != NULL){
+        ++line_int;
         j = 0;
         while(isspace(line[j])) {  // Test for whitespace at start of sentence
             j++;
@@ -219,7 +221,7 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                         crontabs[i].minute = minute_int;
                     }
                     else{
-                        fprintf(stderr, "%s is not a valid minute in line %i\n", minute, j);
+                        fprintf(stderr, "%s is not a valid minute in line %i\n", minute, line_int);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -234,12 +236,12 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                         crontabs[i].hour = hour_int;
                     }
                     else{
-                        fprintf(stderr, "%s is not a valid hour in line %i\n", hour, j);
+                        fprintf(stderr, "%s is not a valid hour in line %i\n", hour, line_int);
                         exit(EXIT_FAILURE);
                     }
                 }
                 else{
-                    fprintf(stderr, "%s is not a valid hour in line %i\n", hour, j);
+                    fprintf(stderr, "%s is not a valid hour in line %i\n", hour, line_int);
                     exit(EXIT_FAILURE);
                 }
 
@@ -253,12 +255,12 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                         crontabs[i].date = date_int;
                     }
                     else{
-                        fprintf(stderr, "%s is not a valid date in line %i\n", date, j);
+                        fprintf(stderr, "%s is not a valid date in line %i\n", date, line_int);
                         exit(EXIT_FAILURE);
                     }
                 }
                 else{
-                    fprintf(stderr, "%s is not a valid date in line %i\n", date, j);
+                    fprintf(stderr, "%s is not a valid date in line %i\n", date, line_int);
                     exit(EXIT_FAILURE);
                 }
 
@@ -272,7 +274,7 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                         crontabs[i].month = month_int;
                     }
                     else{
-                        fprintf(stderr, "%i is not a valid month in line %i\n", month_int, j);
+                        fprintf(stderr, "%i is not a valid month in line %i\n", month_int, line_int);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -287,7 +289,7 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                         crontabs[i].day = day_int;
                     }
                     else{
-                        fprintf(stderr, "%i is not a valid day in line %i\n", day_int, j);
+                        fprintf(stderr, "%i is not a valid day in line %i\n", day_int, line_int);
                         exit(EXIT_FAILURE);
                     }
                 }
@@ -297,12 +299,12 @@ int read_crontabs(struct Crontabs crontabs[MAX_COMMANDS],  FILE *crontab_file, i
                     strcpy(crontabs[i].command, command);
                 }
                 else{
-                    fprintf(stderr, "%s is not a valid command in line %i\n", command, j);
+                    fprintf(stderr, "%s is not a valid command in line %i\n", command, line_int);
                     exit(EXIT_FAILURE);
                 }
                 i++;
             } else{
-                fprintf(stderr, "Invalid number of words in line %i\n", j);
+                fprintf(stderr, "Invalid number of words in line %i\n", line_int);
                 exit(EXIT_FAILURE);
             }
         }
