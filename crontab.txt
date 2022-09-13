@@ -1,14 +1,14 @@
 # execute a command at 3AM every day
-* * * * *      daily-backup
+0 3 * * *      daily-backup
 #
 # execute a command at 4:15AM every Sunday
-* * * * *   weekly-backup
+0 3 * * *    weekly-backup
 #
 # start thinking about the project....
-* * * * *  deep-thought
+0 10 22 7 mon  deep-thought
 #
 # submit my project automatically, just in case I forget!
-* * * * *   submit-project
+59 16 16 8 *   submit-project
 #
 # mail out a monthly newsletter
-* * * * *      send-monthly-newsletter
+0 2 1 * *      send-monthly-newsletter
