@@ -485,8 +485,7 @@ void estimatecron(char *month, FILE *crontab_file, FILE *estimates_file){
                     }
                     bool duplicate = false; // Duplicate flag
                     for (j = 0; j < counter_size + 1; j++) {
-                        if (strcmp(counter[j].command, crontabs[i].command) ==
-                            0) { // Test if command is already in counter array
+                        if (strcmp(counter[j].command, crontabs[i].command) == 0) { // Test if command is already in counter array
                             duplicate = true;
                         }
                     }
